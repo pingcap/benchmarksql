@@ -16,7 +16,8 @@ public interface jTPCCConfig
     public final static int     DB_UNKNOWN = 0,
 				DB_FIREBIRD = 1,
 				DB_ORACLE = 2,
-				DB_POSTGRES = 3;
+				DB_POSTGRES = 3,
+				DB_MYSQL = 4;
 
     public final static int     NEW_ORDER = 1,
 				PAYMENT = 2,
