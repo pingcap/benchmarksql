@@ -16,6 +16,3 @@ select setval('bmsql_hist_id_seq', (select max(hist_id) from bmsql_history));
 -- Make nextval(seq) the default value of the hist_id column.
 alter table bmsql_history 
     alter column hist_id set default nextval('bmsql_hist_id_seq');
-
--- Add a primary key history(hist_id)
-alter table bmsql_history add primary key (hist_id);

@@ -56,10 +56,10 @@ create table bmsql_customer (
   constraint pk_customer primary key (c_w_id, c_d_id, c_id)
 );
 
---create sequence bmsql_hist_id_seq;
+create sequence bmsql_hist_id_seq;
 
 create table bmsql_history (
-  hist_id  integer not null auto_increment primary key,
+  hist_id  integer not null primary key,
   h_c_id   integer,
   h_c_d_id integer,
   h_c_w_id integer,
@@ -132,4 +132,5 @@ create table bmsql_stock (
   s_dist_10    char(24),
   constraint pk_stock primary key (s_w_id, s_i_id)
 );
+
 
