@@ -1,0 +1,23 @@
+driver=org.postgresql.Driver
+conn=jdbc:postgresql://localhost:5432/postgres
+user=benchmarksql
+password=password
+
+warehouses=1
+terminals=1
+//To run specified transactions per terminal- runMins must equal zero
+runTxnsPerTerminal=10
+//To run for specified minutes- runTxnsPerTerminal must equal zero
+runMins=0
+//Number of total transactions per minute
+limitTxnsPerMin=300
+
+
+//The following five values must add up to 100
+//The default percentages of 45, 43, 4, 4 & 4 match the TPC-C spec
+newOrderWeight=45
+paymentWeight=43
+orderStatusWeight=4
+deliveryWeight=4
+stockLevelWeight=4
+
