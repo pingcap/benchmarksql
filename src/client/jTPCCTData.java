@@ -10,6 +10,7 @@ import org.apache.log4j.*;
 
 import java.util.*;
 import java.sql.*;
+import java.math.BigDecimal;
 
 public class jTPCCTData
 {
@@ -760,7 +761,7 @@ public class jTPCCTData
 	{
 	    // Update the DISTRICT.
 	    stmt = db.stmtPaymentUpdateDistrict;
-	    stmt.setDouble(1, payment.h_amount);
+	    stmt.setBigDecimal(1, new BigDecimal(payment.h_amount + ""));
 	    stmt.setInt(2, payment.w_id);
 	    stmt.setInt(3, payment.d_id);
 	    stmt.executeUpdate();
@@ -787,7 +788,7 @@ public class jTPCCTData
 
 	    // Update the WAREHOUSE.
 	    stmt = db.stmtPaymentUpdateWarehouse;
-	    stmt.setDouble(1, payment.h_amount);
+	    stmt.setBigDecimal(1, new BigDecimal(payment.h_amount + ""));
 	    stmt.setInt(2, payment.w_id);
 	    stmt.executeUpdate();
 
@@ -869,8 +870,8 @@ public class jTPCCTData
 	    {
 		// Customer with good credit, don't update C_DATA.
 		stmt = db.stmtPaymentUpdateCustomer;
-		stmt.setDouble(1, payment.h_amount);
-		stmt.setDouble(2, payment.h_amount);
+		stmt.setBigDecimal(1, new BigDecimal(payment.h_amount + ""));
+		stmt.setBigDecimal(2, new BigDecimal(payment.h_amount + ""));
 		stmt.setInt(3, payment.c_w_id);
 		stmt.setInt(4, payment.c_d_id);
 		stmt.setInt(5, payment.c_id);
@@ -895,8 +896,8 @@ public class jTPCCTData
 		rs.close();
 
 		stmt = db.stmtPaymentUpdateCustomerWithData;
-		stmt.setDouble(1, payment.h_amount);
-		stmt.setDouble(2, payment.h_amount);
+		stmt.setBigDecimal(1, new BigDecimal(payment.h_amount + ""));
+		stmt.setBigDecimal(2, new BigDecimal(payment.h_amount + ""));
 
 		StringBuffer sbData = new StringBuffer();
 		Formatter fmtData = new Formatter(sbData);
@@ -1702,7 +1703,7 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 
 		// Update the CUSTOMER.
 		stmt1 = db.stmtDeliveryBGUpdateCustomer;
-		stmt1.setDouble(1, sum_ol_amount);
+		stmt1.setBigDecimal(1, new BigDecimal(sum_ol_amount + ""));
 		stmt1.setInt(2, deliveryBG.w_id);
 		stmt1.setInt(3, d_id);
 		stmt1.setInt(4, c_id);
