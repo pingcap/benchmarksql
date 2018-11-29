@@ -194,7 +194,7 @@ public class jTPCCConnection
 	    case jTPCCConfig.DB_POSTGRES:
 	    case jTPCCConfig.DB_MYSQL:
 		stmtStockLevelSelectLow = dbConn.prepareStatement(
-		    "SELECT /*+ TIDB_INLJ(bmsql_stock) */ count(*) AS low_stock FROM (" +
+		    "SELECT /*+ TIDB_INLJ(bmsql_order_line) */ count(*) AS low_stock FROM (" +
 		    "    SELECT s_w_id, s_i_id, s_quantity " +
 		    "        FROM bmsql_stock " +
 		    "        WHERE s_w_id = ? AND s_quantity < ? AND s_i_id IN (" +
