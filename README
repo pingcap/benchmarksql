@@ -1,0 +1,9 @@
+The test process for MySQL/TiDB
+# Create the tables
+./runSQL.sh props.mysql sql.mysql/tableCreates.sql
+# Add the indices (TiDB prefers to import data after adding the indices)
+./runSQL.sh props.mysql sql.mysql/indexCreates.sql
+# Import Data
+./runLoader.sh props.mysql
+# Run the benchmark
+./runBenchmark.sh props.mysql
