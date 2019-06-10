@@ -161,7 +161,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		    parent.resultAppend(term);
 		    term.traceScreen(log);
 		}
-		catch (SelectForUpdateConflictException e)
+		catch (CommitException e)
 		{
 			continue;
 		}
@@ -187,7 +187,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		    parent.resultAppend(term);
 		    term.traceScreen(log);
 		}
-		catch (SelectForUpdateConflictException e)
+		catch (CommitException e)
 		{
 			continue;
 		}
@@ -213,7 +213,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		    parent.resultAppend(term);
 		    term.traceScreen(log);
 		}
-		catch (SelectForUpdateConflictException e)
+		catch (CommitException e)
 		{
 			continue;
 		}
@@ -252,7 +252,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 
 		    skippedDeliveries = bg.getSkippedDeliveries();
 		}
-		catch (SelectForUpdateConflictException e)
+		catch (CommitException e)
 		{
 			continue;
 		}
@@ -278,7 +278,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		    parent.resultAppend(term);
 		    term.traceScreen(log);
 		}
-		catch (SelectForUpdateConflictException e)
+		catch (CommitException e)
 		{
 			continue;
 		}
