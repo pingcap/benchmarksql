@@ -268,7 +268,20 @@ public class jTPCCConnection
     public void commit()
 	throws SQLException
     {
-	dbConn.commit();
+    	try {
+			dbConn.commit();
+		} catch(SQLException e) {
+    		if (e.getMessage().contains("can not retry")) {
+				throw new SelectForUpdateConflictException();
+			}
+    		if (e.getMessage().contains("Write conflict")) {
+				throw new SelectForUpdateConflictException();
+			}
+			if (e.getMessage().contains("safe to retry")) {
+				throw new SelectForUpdateConflictException();
+			}
+    		throw e;
+		}
     }
 
     public void rollback()
