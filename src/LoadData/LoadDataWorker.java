@@ -277,7 +277,7 @@ public class LoadDataWorker implements Runnable
 	{
 	    String iData;
 
-	    if (i_id != 1 && (i_id - 1) % 1000 == 0)
+	    if (i_id != 1 && (i_id - 1) % 100 == 0)
 	    {
 		if (writeCSV)
 		{
@@ -287,6 +287,7 @@ public class LoadDataWorker implements Runnable
 		{
 		    stmtItem.executeBatch();
 		    stmtItem.clearBatch();
+		    dbConn.commit();
 		}
 	    }
 
@@ -391,9 +392,9 @@ public class LoadDataWorker implements Runnable
 	{
 	    String sData;
 	    /*
-	     * Load the data in batches of 10,000 rows.
+	     * Load the data in batches of 500 rows.
 	     */
-	    if (s_i_id != 1 && (s_i_id - 1) % 10000 == 0)
+	    if (s_i_id != 1 && (s_i_id - 1) % 500 == 0)
 	    {
 		if (writeCSV)
 		    LoadData.warehouseAppend(sbWarehouse);
@@ -401,6 +402,7 @@ public class LoadDataWorker implements Runnable
 		{
 		    stmtStock.executeBatch();
 		    stmtStock.clearBatch();
+		    dbConn.commit();
 		}
 	    }
 
@@ -473,6 +475,7 @@ public class LoadDataWorker implements Runnable
 	{
 	    stmtStock.executeBatch();
 	    stmtStock.clearBatch();
+	    dbConn.commit();
 	}
 
 	/*
@@ -519,6 +522,25 @@ public class LoadDataWorker implements Runnable
 	     */
 	    for (int c_id = 1; c_id <= 3000; c_id++)
 	    {
+			// commit district and history when 200 records
+			if (c_id != 1 && (c_id - 1) % 200 == 0)
+			{
+				if (writeCSV){
+					LoadData.customerAppend(sbCustomer);
+					LoadData.historyAppend(sbHistory);
+				}
+				else
+				{
+					stmtCustomer.executeBatch();
+					stmtCustomer.clearBatch();
+					dbConn.commit();
+
+					stmtHistory.executeBatch();
+					stmtHistory.clearBatch();
+					dbConn.commit();
+				}
+			}
+
 		if (writeCSV)
 		{
 		    fmtCustomer.format("%d,%d,%d,%.4f,%s,%s,%s," +
@@ -620,8 +642,10 @@ public class LoadDataWorker implements Runnable
 	    {
 		stmtCustomer.executeBatch();
 		stmtCustomer.clearBatch();
+		dbConn.commit();
 		stmtHistory.executeBatch();
 		stmtHistory.clearBatch();
+		dbConn.commit();
 	    }
 
 	    /*
@@ -645,6 +669,31 @@ public class LoadDataWorker implements Runnable
 	    for (int o_id = 1; o_id <= 3000; o_id++)
 	    {
 		int     o_ol_cnt = rnd.nextInt(5, 15);
+
+			// commit district and history when 100 records
+			if (o_id != 1 && (o_id - 1) % 100 == 0)
+			{
+				if (writeCSV)
+				{
+					LoadData.orderAppend(sbOrder);
+					LoadData.orderLineAppend(sbOrderLine);
+					LoadData.newOrderAppend(sbNewOrder);
+				}
+				else
+				{
+					stmtOrder.executeBatch();
+					stmtOrder.clearBatch();
+					dbConn.commit();
+
+					stmtOrderLine.executeBatch();
+					stmtOrderLine.clearBatch();
+					dbConn.commit();
+
+					stmtNewOrder.executeBatch();
+					stmtNewOrder.clearBatch();
+					dbConn.commit();
+				}
+			}
 
 		if (writeCSV)
 		{
@@ -753,10 +802,13 @@ public class LoadDataWorker implements Runnable
 	    {
 		stmtOrder.executeBatch();
 		stmtOrder.clearBatch();
+		dbConn.commit();
 		stmtOrderLine.executeBatch();
 		stmtOrderLine.clearBatch();
+		dbConn.commit();
 		stmtNewOrder.executeBatch();
 		stmtNewOrder.clearBatch();
+		dbConn.commit();
 	    }
 	}
 

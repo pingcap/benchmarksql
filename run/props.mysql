@@ -1,6 +1,6 @@
 db=mysql
 driver=com.mysql.jdbc.Driver
-conn=jdbc:mysql://localhost:4000/tpcc?useSSL=false&useServerPrepStmts=true&useConfigs=maxPerformance&sessionVariables=tidb_batch_commit=1
+conn=jdbc:mysql://localhost:4000/tpcc?useSSL=false&useServerPrepStmts=true&useConfigs=maxPerformance
 user=root
 password=
 
