@@ -53,7 +53,8 @@ create table bmsql_customer (
   c_since        timestamp,
   c_middle       char(2),
   c_data         varchar(500),
-  constraint pk_customer primary key (c_w_id, c_d_id, c_id)
+  constraint pk_customer primary key (c_w_id, c_d_id, c_id),
+  constraint bmsql_customer_idx1 key (c_w_id, c_d_id, c_last, c_first)
 );
 
 --create sequence bmsql_hist_id_seq;
@@ -86,7 +87,8 @@ create table bmsql_oorder (
   o_ol_cnt     integer,
   o_all_local  integer,
   o_entry_d    timestamp,
-  constraint pk_oorder primary key (o_w_id, o_d_id, o_id)
+  constraint pk_oorder primary key (o_w_id, o_d_id, o_id),
+  constraint bmsql_oorder_idx1 unique key (o_w_id, o_d_id, o_carrier_id, o_id)
 );
 
 create table bmsql_order_line (
