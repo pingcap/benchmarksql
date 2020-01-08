@@ -104,25 +104,25 @@ public class LoadData
 	    try
 	    {
 		configCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "config.csv"));
+							      "bmsql_config.csv"));
 		itemCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "item.csv"));
+							      "bmsql_item.csv"));
 		warehouseCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "warehouse.csv"));
+							      "bmsql_warehouse.csv"));
 		districtCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "district.csv"));
+							      "bmsql_district.csv"));
 		stockCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "stock.csv"));
+							      "bmsql_stock.csv"));
 		customerCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "customer.csv"));
+							      "bmsql_customer.csv"));
 		historyCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "cust-hist.csv"));
+							      "bmsql_history.csv"));
 		orderCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "order.csv"));
+							      "bmsql_oorder.csv"));
 		orderLineCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "order-line.csv"));
+							      "bmsql_order_line.csv"));
 		newOrderCSV = new BufferedWriter(new FileWriter(fileLocation +
-							      "new-order.csv"));
+							      "bmsql_new_order.csv"));
 	    }
 	    catch (IOException ie)
 	    {
