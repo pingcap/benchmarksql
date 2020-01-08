@@ -109,7 +109,7 @@ public class LoadDataWorker implements Runnable
 	    );
 	stmtWarehouse = dbConn.prepareStatement(
 		"INSERT INTO bmsql_warehouse (" +
-		"  w_ytd, w_tax, w_id, w_name, w_street_1, w_street_2, w_city, " +
+		"  w_id, w_ytd, w_tax, w_name, w_street_1, w_street_2, w_city, " +
 		"  w_state, w_zip) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	    );
@@ -128,7 +128,7 @@ public class LoadDataWorker implements Runnable
 	    );
 	stmtCustomer = dbConn.prepareStatement(
 		"INSERT INTO bmsql_customer (" +
-		"  c_w_id, c_id, c_d_id, c_discount, c_credit, c_last, c_first, c_credit_lim, " +
+		"  c_w_id, c_d_id, c_id, c_discount, c_credit, c_last, c_first, c_credit_lim, " +
 		"  c_balance, c_ytd_payment, c_payment_cnt, c_delivery_cnt, " +
 		"  c_street_1, c_street_2, c_city, c_state, c_zip, " +
 		"  c_phone, c_since, c_middle, c_data) " +
@@ -555,7 +555,7 @@ public class LoadDataWorker implements Runnable
 			-10.00,
 			10.00,
 			1,
-			0,
+			1,
 			rnd.getAString(10, 20),
 			rnd.getAString(10, 20),
 			rnd.getAString(10, 20),
