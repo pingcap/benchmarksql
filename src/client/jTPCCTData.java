@@ -373,7 +373,20 @@ public class jTPCCTData
 	    rs.close();
 
 	    // Retrieve the required data from CUSTOMER and WAREHOUSE
-	    stmt = db.stmtNewOrderSelectWhseCust;
+	    stmt = db.stmtNewOrderSelectWhse;
+	    stmt.setInt(1, newOrder.w_id);
+	    rs = stmt.executeQuery();
+	    stmt = db.stmtNewOrderSelectCust;
+	    if (!rs.next())
+	    {
+		rs.close();
+		throw new SQLException("Warehouse or Customer for" +
+			" W_ID=" + newOrder.w_id +
+			" D_ID=" + newOrder.d_id +
+			" C_ID=" + newOrder.c_id + " not found");
+	    }
+	    newOrder.w_tax      = rs.getDouble("w_tax");
+
 	    stmt.setInt(1, newOrder.w_id);
 	    stmt.setInt(2, newOrder.d_id);
 	    stmt.setInt(3, newOrder.c_id);
@@ -386,7 +399,6 @@ public class jTPCCTData
 			" D_ID=" + newOrder.d_id +
 			" C_ID=" + newOrder.c_id + " not found");
 	    }
-	    newOrder.w_tax      = rs.getDouble("w_tax");
 	    newOrder.c_last     = rs.getString("c_last");
 	    newOrder.c_credit   = rs.getString("c_credit");
 	    newOrder.c_discount = rs.getDouble("c_discount");
@@ -510,8 +522,9 @@ public class jTPCCTData
 		    updateStockBatch.setInt(3, 0);
 		else
 		    updateStockBatch.setInt(3, 1);
-		updateStockBatch.setInt(4, newOrder.ol_supply_w_id[seq]);
-		updateStockBatch.setInt(5, newOrder.ol_i_id[seq]);
+		long s_pri_id = (long)newOrder.ol_supply_w_id[seq];
+		s_pri_id = s_pri_id * 1048576L + newOrder.ol_i_id[seq];
+		updateStockBatch.setLong(4, s_pri_id);
 		updateStockBatch.addBatch();
 
 		// Insert the ORDER_LINE row.

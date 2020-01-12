@@ -115,11 +115,11 @@ public class LoadDataWorker implements Runnable
 	    );
 	stmtStock = dbConn.prepareStatement(
 		"INSERT INTO bmsql_stock ("+
-		"  s_i_id, s_w_id, s_quantity, s_dist_01, s_dist_02, " +
+		"  s_pri_id, s_i_id, s_w_id, s_quantity, s_dist_01, s_dist_02, " +
 		"  s_dist_03, s_dist_04, s_dist_05, s_dist_06, " +
 		"  s_dist_07, s_dist_08, s_dist_09, s_dist_10, " +
 		"  s_ytd, s_order_cnt, s_remote_cnt, s_data) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	    );
 	stmtDistrict = dbConn.prepareStatement(
 		"INSERT INTO bmsql_district ("+
@@ -420,11 +420,12 @@ public class LoadDataWorker implements Runnable
 	    {
 		sData = rnd.getAString(26, 50);
 	    }
-
+ 	    long s_pri_id = (long)w_id * 1048576L + (long)s_i_id;
 	    if (writeCSV)
 	    {
-		fmtStock.format("%d,%d,%d,%d,%d,%d,%s," +
+		fmtStock.format("%ld,%d,%d,%d,%d,%d,%s," +
 				"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+				s_pri_id,
 				w_id,
 				s_i_id,
 				rnd.nextInt(10, 100),
@@ -445,10 +446,10 @@ public class LoadDataWorker implements Runnable
 	    }
 	    else
 	    {
-		stmtStock.setInt(1, s_i_id);
-		stmtStock.setInt(2, w_id);
-		stmtStock.setInt(3, rnd.nextInt(10, 100));
-		stmtStock.setString(4, rnd.getAString(24, 24));
+		stmtStock.setLong(1, s_pri_id);
+		stmtStock.setInt(2, s_i_id);
+		stmtStock.setInt(3, w_id);
+		stmtStock.setInt(4, rnd.nextInt(10, 100));
 		stmtStock.setString(5, rnd.getAString(24, 24));
 		stmtStock.setString(6, rnd.getAString(24, 24));
 		stmtStock.setString(7, rnd.getAString(24, 24));
@@ -458,10 +459,11 @@ public class LoadDataWorker implements Runnable
 		stmtStock.setString(11, rnd.getAString(24, 24));
 		stmtStock.setString(12, rnd.getAString(24, 24));
 		stmtStock.setString(13, rnd.getAString(24, 24));
-		stmtStock.setInt(14, 0);
+		stmtStock.setString(14, rnd.getAString(24, 24));
 		stmtStock.setInt(15, 0);
 		stmtStock.setInt(16, 0);
-		stmtStock.setString(17, sData);
+		stmtStock.setInt(17, 0);
+		stmtStock.setString(18, sData);
 
 		stmtStock.addBatch();
 	    }

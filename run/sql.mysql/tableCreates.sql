@@ -115,6 +115,7 @@ create table bmsql_item (
 );
 
 create table bmsql_stock (
+  s_pri_id     bigint       not null,
   s_w_id       integer       not null,
   s_i_id       integer       not null,
   s_quantity   integer,
@@ -132,6 +133,7 @@ create table bmsql_stock (
   s_dist_08    char(24),
   s_dist_09    char(24),
   s_dist_10    char(24),
-  constraint pk_stock primary key (s_w_id, s_i_id)
+  constraint pk_stock primary key (s_pri_id),
+  unique index idx_stock(s_w_id, s_i_id)
 );
 

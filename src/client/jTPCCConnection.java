@@ -18,6 +18,8 @@ public class jTPCCConnection
     private int                 dbType = 0;
 
     public PreparedStatement    stmtNewOrderSelectWhseCust;
+    public PreparedStatement    stmtNewOrderSelectWhse;
+    public PreparedStatement    stmtNewOrderSelectCust;
     public PreparedStatement    stmtNewOrderSelectDist;
     public PreparedStatement    stmtNewOrderUpdateDist;
     public PreparedStatement    stmtNewOrderInsertOrder;
@@ -65,6 +67,14 @@ public class jTPCCConnection
 		"    FROM bmsql_customer " +
 		"    JOIN bmsql_warehouse ON (w_id = c_w_id) " +
 		"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?");
+	stmtNewOrderSelectWhse = dbConn.prepareStatement(
+		"SELECT w_tax " +
+		"    from bmsql_warehouse where w_id = ?");
+	
+	stmtNewOrderSelectCust = dbConn.prepareStatement(
+		"SELECT c_discount, c_last, c_credit FROM " +
+		"bmsql_customer where c_w_id = ? AND c_d_id = ? AND c_id = ?");
+
 	stmtNewOrderSelectDist = dbConn.prepareStatement(
 		"SELECT d_tax, d_next_o_id " +
 		"    FROM bmsql_district " +
@@ -100,7 +110,7 @@ public class jTPCCConnection
 		"    SET s_quantity = ?, s_ytd = s_ytd + ?, " +
 		"        s_order_cnt = s_order_cnt + 1, " +
 		"        s_remote_cnt = s_remote_cnt + ? " +
-		"    WHERE s_w_id = ? AND s_i_id = ?");
+		"    WHERE s_pri_id = ?");
 	stmtNewOrderInsertOrderLine = dbConn.prepareStatement(
 		"INSERT INTO bmsql_order_line (" +
 		"    ol_o_id, ol_d_id, ol_w_id, ol_number, " +
