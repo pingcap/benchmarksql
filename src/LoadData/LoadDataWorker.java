@@ -423,7 +423,7 @@ public class LoadDataWorker implements Runnable
  	    long s_pri_id = (long)w_id * 1048576L + (long)s_i_id;
 	    if (writeCSV)
 	    {
-		fmtStock.format("%ld,%d,%d,%d,%d,%d,%s," +
+		fmtStock.format("%d,%d,%d,%d,%d,%d,%s," +
 				"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
 				s_pri_id,
 				w_id,
