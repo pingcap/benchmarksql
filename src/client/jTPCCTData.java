@@ -484,6 +484,11 @@ public class jTPCCTData
 //				" S_W_ID=" + newOrder.ol_supply_w_id[seq] +
 //				" S_I_ID=" + newOrder.ol_i_id[seq] +
 //				" not fount");
+			insertOrderLineBatch.executeBatch();
+			insertOrderLineBatch.clearBatch();
+			updateStockBatch.executeBatch();
+			updateStockBatch.clearBatch();
+
 			db.rollback();
 			return;
 		}
