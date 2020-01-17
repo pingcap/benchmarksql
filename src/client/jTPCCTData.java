@@ -480,10 +480,12 @@ public class jTPCCTData
 		rs = stmt.executeQuery();
 		if (!rs.next())
 		{
-		    throw new Exception("STOCK with" +
-				" S_W_ID=" + newOrder.ol_supply_w_id[seq] +
-				" S_I_ID=" + newOrder.ol_i_id[seq] +
-				" not fount");
+//		    throw new Exception("STOCK with" +
+//				" S_W_ID=" + newOrder.ol_supply_w_id[seq] +
+//				" S_I_ID=" + newOrder.ol_i_id[seq] +
+//				" not fount");
+			db.rollback();
+			return;
 		}
 		newOrder.s_quantity[seq] = rs.getInt("s_quantity");
 		// Leave the ResultSet open ... we need it for the s_dist_NN.
