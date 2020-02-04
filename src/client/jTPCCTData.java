@@ -418,13 +418,95 @@ public class jTPCCTData
 
 	    // Per ORDER_LINE
 	    insertOrderLineBatch = db.stmtNewOrderInsertOrderLine;
-	    updateStockBatch = db.stmtNewOrderUpdateStock;
+        updateStockBatch = db.stmtNewOrderUpdateStock;
+		int seq0 = ol_seq[0];
+        boolean same_warehouse = true;
+        HashSet<Integer> set = new HashSet<Integer>();
+	    for (int i = 1; i < ol_cnt; i++)
+	    {
+		    int seq = ol_seq[i];
+            if (set.contains(newOrder.ol_i_id[seq])) {
+                same_warehouse = false;
+                break;
+            }
+            if (newOrder.ol_supply_w_id[seq] != newOrder.ol_supply_w_id[seq0]) {
+                same_warehouse = false;
+                break;
+            }
+            set.add(Integer.valueOf(newOrder.ol_i_id[seq]));
+        }
+        if (same_warehouse) {
+		    stmt = db.stmtNewOrderSelectItemBatch;
+            StringBuffer buf = new StringBuffer();
+            HashMap<Integer,Integer> map = new HashMap<Integer,Integer>();
+            String   i_data[] = new String[15];
+            for (int i = 0; i < ol_cnt; ++i) {
+		        int seq = ol_seq[i];
+                buf.append(String.valueOf(newOrder.ol_i_id[seq]));
+                if (i + 1 != ol_cnt) {
+                    buf.append(",");
+                }
+                map.put(Integer.valueOf(newOrder.ol_i_id[seq]), Integer.valueOf(seq));
+            }
+		    stmt.setString(1, buf.toString());
+		    rs = stmt.executeQuery();
+		    while (rs.next())
+		    {
+                int i_id = rs.getInt("i_id");
+                int seq = map.get(i_id).intValue();
+    		    newOrder.i_name[seq] = rs.getString("i_name");
+		        newOrder.i_price[seq] = rs.getDouble("i_price");
+		        i_data[seq] = rs.getString("i_data");
+            }
+
+		    stmt = db.stmtNewOrderSelectStockBatch;
+            buf = new StringBuffer();
+            for (int i = 0; i < ol_cnt; ++i) {
+		        int seq = ol_seq[i];
+		        long s_pri_id = (long)newOrder.ol_supply_w_id[seq];
+		        s_pri_id = s_pri_id * 1048576L + newOrder.ol_i_id[seq];
+                buf.append(String.valueOf(s_pri_id));
+                if (i + 1 != ol_cnt) {
+                    buf.append(",");
+                }
+            }
+		    stmt.setString(1, buf.toString());
+		    rs = stmt.executeQuery();
+		    while (rs.next()) {
+                int i_id = rs.getInt("s_i_id");
+                int seq = map.get(i_id).intValue();
+                newOrder.s_quantity[seq] = rs.getInt("s_quantity");
+		        newOrder.ol_amount[seq] = newOrder.i_price[seq] * newOrder.ol_quantity[seq];
+		        if (i_data[seq].contains("ORIGINAL") &&
+		            rs.getString("s_data").contains("ORIGINAL"))
+		            newOrder.brand_generic[seq] = new String("B");
+		        else
+		            newOrder.brand_generic[seq] = new String("G");
+            }
+            for (int i = 0; i < ol_cnt; i++)
+            {
+                int seq = ol_seq[i];
+                if (newOrder.i_name[seq].isEmpty()) {
+                    if (transRbk && (newOrder.ol_i_id[seq] < 1 ||
+                                newOrder.ol_i_id[seq] > 100000))
+                    {
+                        db.rollback();
+                        return;
+                    }
+                    // This ITEM should have been there.
+                    throw new Exception("ITEM " + newOrder.ol_i_id[seq] +
+                            " not fount");
+                }
+            }
+        }
+
 	    for (int i = 0; i < ol_cnt; i++)
 	    {
 		int ol_number = i + 1;
 		int seq = ol_seq[i];
 		String i_data;
 
+        if (!same_warehouse) {
 		stmt = db.stmtNewOrderSelectItem;
 		stmt.setInt(1, newOrder.ol_i_id[seq]);
 		rs = stmt.executeQuery();
@@ -495,6 +577,7 @@ public class jTPCCTData
 		else
 		    newOrder.brand_generic[seq] = new String("G");
 
+        }
 		total_amount += newOrder.ol_amount[seq] *
 				(1.0 - newOrder.c_discount) *
 				(1.0 + newOrder.w_tax + newOrder.d_tax);
