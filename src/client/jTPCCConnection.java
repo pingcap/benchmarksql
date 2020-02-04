@@ -94,7 +94,7 @@ public class jTPCCConnection
 		"    WHERE s_w_id = ? AND s_i_id = ? " +
 		"    FOR UPDATE");
 	stmtNewOrderSelectStockBatch = dbConn.prepareStatement(
-		"SELECT s_quantity, s_data, " +
+		"SELECT s_i_id, s_quantity, s_data, " +
 		"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
 		"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
 		"       s_dist_09, s_dist_10 " +
@@ -103,7 +103,7 @@ public class jTPCCConnection
 		"    FOR UPDATE");
 	
     stmtNewOrderSelectItemBatch = dbConn.prepareStatement(
-		"SELECT i_price, i_name, i_data " +
+		"SELECT i_id, i_price, i_name, i_data " +
 		"    FROM bmsql_item " +
 		"    WHERE i_id in (?)");
 
