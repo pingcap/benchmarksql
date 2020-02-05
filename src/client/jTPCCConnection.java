@@ -14,7 +14,7 @@ import java.sql.*;
 
 public class jTPCCConnection
 {
-    private Connection          dbConn = null;
+    public Connection          dbConn = null;
     private int                 dbType = 0;
 
     public PreparedStatement    stmtNewOrderSelectWhseCust;

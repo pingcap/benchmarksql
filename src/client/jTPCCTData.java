@@ -434,71 +434,86 @@ public class jTPCCTData
                 break;
             }
             set.add(Integer.valueOf(newOrder.ol_i_id[seq]));
-        }
-        if (same_warehouse) {
-		    stmt = db.stmtNewOrderSelectItemBatch;
-            StringBuffer buf = new StringBuffer();
-            HashMap<Integer,Integer> map = new HashMap<Integer,Integer>();
-            String   i_data[] = new String[15];
-            for (int i = 0; i < ol_cnt; ++i) {
-		        int seq = ol_seq[i];
-                buf.append(String.valueOf(newOrder.ol_i_id[seq]));
-                if (i + 1 != ol_cnt) {
-                    buf.append(",");
-                }
-                map.put(Integer.valueOf(newOrder.ol_i_id[seq]), Integer.valueOf(seq));
-            }
-		    stmt.setString(1, buf.toString());
-		    rs = stmt.executeQuery();
-		    while (rs.next())
-		    {
-                int i_id = rs.getInt("i_id");
-                int seq = map.get(i_id).intValue();
-    		    newOrder.i_name[seq] = rs.getString("i_name");
-		        newOrder.i_price[seq] = rs.getDouble("i_price");
-		        i_data[seq] = rs.getString("i_data");
-            }
+	    }
+		String distName = "s_dist_0" + String.valueOf(newOrder.d_id);
+		if (newOrder.d_id > 9) {
+			distName = "s_dist_" + String.valueOf(newOrder.d_id);
+		}
+		if (same_warehouse) {
+			String st = "SELECT i_id, i_price, i_name, i_data " +
+				"    FROM bmsql_item WHERE i_id in (";
+			HashMap<Integer,Integer> map = new HashMap<Integer,Integer>();
+			String   i_data[] = new String[15];
+			for (int i = 0; i < ol_cnt; ++i) {
+				int seq = ol_seq[i];
+				st += String.valueOf(newOrder.ol_i_id[seq]);
+				if (i + 1 != ol_cnt) {
+					st += ',';
+				} else {
+					st += ')';
+				}
+				map.put(Integer.valueOf(newOrder.ol_i_id[seq]), Integer.valueOf(seq));
+			}
+			stmt = db.dbConn.prepareStatement(st);
+			rs = stmt.executeQuery();
+			while (rs.next())
+			{
+				int i_id = rs.getInt("i_id");
+				int seq = map.get(i_id).intValue();
+				newOrder.i_name[seq] = rs.getString("i_name");
+				newOrder.i_price[seq] = rs.getDouble("i_price");
+				i_data[seq] = rs.getString("i_data");
+			}
+			rs.close();
 
-		    stmt = db.stmtNewOrderSelectStockBatch;
-            buf = new StringBuffer();
-            for (int i = 0; i < ol_cnt; ++i) {
-		        int seq = ol_seq[i];
-		        long s_pri_id = (long)newOrder.ol_supply_w_id[seq];
-		        s_pri_id = s_pri_id * 1048576L + newOrder.ol_i_id[seq];
-                buf.append(String.valueOf(s_pri_id));
-                if (i + 1 != ol_cnt) {
-                    buf.append(",");
-                }
-            }
-		    stmt.setString(1, buf.toString());
-		    rs = stmt.executeQuery();
-		    while (rs.next()) {
-                int i_id = rs.getInt("s_i_id");
-                int seq = map.get(i_id).intValue();
-                newOrder.s_quantity[seq] = rs.getInt("s_quantity");
-		        newOrder.ol_amount[seq] = newOrder.i_price[seq] * newOrder.ol_quantity[seq];
-		        if (i_data[seq].contains("ORIGINAL") &&
-		            rs.getString("s_data").contains("ORIGINAL"))
-		            newOrder.brand_generic[seq] = new String("B");
-		        else
-		            newOrder.brand_generic[seq] = new String("G");
-            }
-            for (int i = 0; i < ol_cnt; i++)
-            {
-                int seq = ol_seq[i];
-                if (newOrder.i_name[seq].isEmpty()) {
-                    if (transRbk && (newOrder.ol_i_id[seq] < 1 ||
-                                newOrder.ol_i_id[seq] > 100000))
-                    {
-                        db.rollback();
-                        return;
-                    }
-                    // This ITEM should have been there.
-                    throw new Exception("ITEM " + newOrder.ol_i_id[seq] +
-                            " not fount");
-                }
-            }
-        }
+			st = "SELECT s_i_id, s_quantity, s_data, " +
+				"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
+				"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
+				"       s_dist_09, s_dist_10 " +
+				"    FROM bmsql_stock " +
+				"    WHERE s_pri_id in (";
+
+			for (int i = 0; i < ol_cnt; ++i) {
+				int seq = ol_seq[i];
+				long s_pri_id = (long)newOrder.ol_supply_w_id[seq];
+				s_pri_id = s_pri_id * 1048576L + newOrder.ol_i_id[seq];
+				st += String.valueOf(s_pri_id);
+				if (i + 1 != ol_cnt) {
+					st += ',';
+				} else {
+					st += ") FOR UPDATE";
+				}
+			}
+			stmt = db.dbConn.prepareStatement(st);
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				int i_id = rs.getInt("s_i_id");
+				int seq = map.get(i_id).intValue();
+				newOrder.s_quantity[seq] = rs.getInt("s_quantity");
+				newOrder.ol_amount[seq] = newOrder.i_price[seq] * newOrder.ol_quantity[seq];
+				newOrder.dist_value[seq] = rs.getString(distName);
+				if (i_data[seq].contains("ORIGINAL") &&
+					rs.getString("s_data").contains("ORIGINAL"))
+					newOrder.brand_generic[seq] = new String("B");
+				else
+					newOrder.brand_generic[seq] = new String("G");
+			}
+			for (int i = 0; i < ol_cnt; i++)
+			{
+				int seq = ol_seq[i];
+				if (newOrder.i_name[seq] == null) {
+					if (transRbk && (newOrder.ol_i_id[seq] < 1 ||
+						newOrder.ol_i_id[seq] > 100000))
+					{
+						db.rollback();
+						return;
+					}
+					// This ITEM should have been there.
+					throw new Exception("ITEM " + newOrder.ol_i_id[seq] +
+						" not fount");
+				}
+			}
+		}
 
 	    for (int i = 0; i < ol_cnt; i++)
 	    {
@@ -576,7 +591,7 @@ public class jTPCCTData
 		    newOrder.brand_generic[seq] = new String("B");
 		else
 		    newOrder.brand_generic[seq] = new String("G");
-
+		newOrder.dist_value[seq] = rs.getString(distName);
         }
 		total_amount += newOrder.ol_amount[seq] *
 				(1.0 - newOrder.c_discount) *
@@ -606,39 +621,7 @@ public class jTPCCTData
 		insertOrderLineBatch.setInt(6, newOrder.ol_supply_w_id[seq]);
 		insertOrderLineBatch.setInt(7, newOrder.ol_quantity[seq]);
 		insertOrderLineBatch.setDouble(8, newOrder.ol_amount[seq]);
-		switch (newOrder.d_id)
-		{
-		    case 1:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_01"));
-			break;
-		    case 2:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_02"));
-			break;
-		    case 3:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_03"));
-			break;
-		    case 4:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_04"));
-			break;
-		    case 5:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_05"));
-			break;
-		    case 6:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_06"));
-			break;
-		    case 7:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_07"));
-			break;
-		    case 8:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_08"));
-			break;
-		    case 9:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_09"));
-			break;
-		    case 10:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_10"));
-			break;
-		}
+		insertOrderLineBatch.setString(9, newOrder.dist_value[seq]);
 		insertOrderLineBatch.addBatch();
 	    }
 	    rs.close();
@@ -782,6 +765,7 @@ public class jTPCCTData
 	public String   brand_generic[] = new String[15];
 	public double   i_price[] = new double[15];
 	public double   ol_amount[] = new double[15];
+	public String   dist_value[] = new String[15];
     }
 
     /* **********************************************************************
