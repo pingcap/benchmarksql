@@ -422,7 +422,7 @@ public class jTPCCTData
 		int seq0 = ol_seq[0];
         boolean same_warehouse = true;
         HashSet<Integer> set = new HashSet<Integer>();
-	    for (int i = 1; i < ol_cnt; i++)
+	    for (int i = 0; i < ol_cnt; i++)
 	    {
 		    int seq = ol_seq[i];
             if (set.contains(newOrder.ol_i_id[seq])) {
@@ -459,7 +459,11 @@ public class jTPCCTData
 			while (rs.next())
 			{
 				int i_id = rs.getInt("i_id");
-				int seq = map.get(i_id).intValue();
+				Integer seq_i = map.get(i_id);
+				if (seq_i == null) {
+					continue;
+				}
+				int seq = seq_i.intValue();
 				newOrder.i_name[seq] = rs.getString("i_name");
 				newOrder.i_price[seq] = rs.getDouble("i_price");
 				i_data[seq] = rs.getString("i_data");
