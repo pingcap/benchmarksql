@@ -429,10 +429,6 @@ public class jTPCCTData
                 same_warehouse = false;
                 break;
             }
-            if (newOrder.ol_supply_w_id[seq] != newOrder.ol_supply_w_id[seq0]) {
-                same_warehouse = false;
-                break;
-            }
             set.add(Integer.valueOf(newOrder.ol_i_id[seq]));
 	    }
 		String distName = "s_dist_0" + String.valueOf(newOrder.d_id);
@@ -492,6 +488,9 @@ public class jTPCCTData
 			rs = stmt.executeQuery();
 			while (rs.next()) {
 				int i_id = rs.getInt("s_i_id");
+				if (map.get(i_id) == null) {
+					continue;
+				}
 				int seq = map.get(i_id).intValue();
 				newOrder.s_quantity[seq] = rs.getInt("s_quantity");
 				newOrder.ol_amount[seq] = newOrder.i_price[seq] * newOrder.ol_quantity[seq];
