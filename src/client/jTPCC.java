@@ -46,6 +46,7 @@ public class jTPCC implements jTPCCConfig
     private double tpmC;
     private jTPCCRandom rnd;
     private OSCollector osCollector = null;
+    private HashMap<String, Long> costPerWorkerload;
 
     public static void main(String args[])
     {
@@ -56,6 +57,7 @@ public class jTPCC implements jTPCCConfig
     private String getProp (Properties p, String pName)
     {
 	String prop =  p.getProperty(pName);
+	costPerWorkerload = new HashMap<String, Long>();
 	log.info("Term-00, " + pName + "=" + prop);
 	return(prop);
     }
@@ -641,6 +643,12 @@ public class jTPCC implements jTPCCConfig
 	{
 	    transactionCount++;
 	    fastNewOrderCounter += newOrder;
+	    Long counter = costPerWorkerload.get(transactionType);
+	    if (counter == null) {
+	        costPerWorkerload.put(transactionType, Long.valueOf(executionTime));
+		} else {
+	    	counter += executionTime;
+		}
 	}
 
 	if(sessionEndTargetTime != -1 && System.currentTimeMillis() > sessionEndTargetTime)
@@ -689,7 +697,10 @@ public class jTPCC implements jTPCCConfig
 	log.info("Term-00, Session Start     = " + sessionStart );
 	log.info("Term-00, Session End       = " + sessionEnd);
 	log.info("Term-00, Transaction Count = " + (transactionCount-1));
-
+	for (String key : costPerWorkerload.keySet()) {
+		Long value = costPerWorkerload.get(key);
+		log.info("executeTime[" + key + "]=" + value.toString());
+	}
     }
 
     private void printMessage(String message)
