@@ -88,7 +88,7 @@ create table bmsql_oorder (
   o_all_local  integer,
   o_entry_d    timestamp,
   constraint pk_oorder primary key (o_w_id, o_d_id, o_id),
-  constraint bmsql_oorder_idx1 unique key (o_w_id, o_d_id, o_carrier_id, o_id)
+  constraint bmsql_oorder_idx1 unique key (o_w_id, o_d_id, o_c_id, o_id)
 );
 
 create table bmsql_order_line (
@@ -102,7 +102,7 @@ create table bmsql_order_line (
   ol_supply_w_id  integer,
   ol_quantity     integer,
   ol_dist_info    char(24),
-  constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_number)
+  constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_i_id, ol_number)
 );
 
 create table bmsql_item (
