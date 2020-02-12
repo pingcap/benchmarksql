@@ -102,7 +102,7 @@ create table bmsql_order_line (
   ol_supply_w_id  integer,
   ol_quantity     integer,
   ol_dist_info    char(24),
-  constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_i_id, ol_number)
+  constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_i_id)
 );
 
 create table bmsql_item (
