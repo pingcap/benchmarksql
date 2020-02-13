@@ -1180,9 +1180,6 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 	    stmt.setInt(1, orderStatus.w_id);
 	    stmt.setInt(2, orderStatus.d_id);
 	    stmt.setInt(3, orderStatus.c_id);
-	    stmt.setInt(4, orderStatus.w_id);
-	    stmt.setInt(5, orderStatus.d_id);
-	    stmt.setInt(6, orderStatus.c_id);
 	    rs = stmt.executeQuery();
 	    if (!rs.next())
 	    {

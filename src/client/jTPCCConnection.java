@@ -176,11 +176,7 @@ public class jTPCCConnection
 		"SELECT o_id, o_entry_d, o_carrier_id " +
 		"    FROM bmsql_oorder " +
 		"    WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ? " +
-		"      AND o_id = (" +
-		"          SELECT max(o_id) " +
-		"              FROM bmsql_oorder " +
-		"              WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ?" +
-		"          )");
+		"      ORDER BY o_id DESC LIMIT 1");
 	stmtOrderStatusSelectOrderLine = dbConn.prepareStatement(
 		"SELECT ol_i_id, ol_supply_w_id, ol_quantity, " +
 		"       ol_amount, ol_delivery_d " +
