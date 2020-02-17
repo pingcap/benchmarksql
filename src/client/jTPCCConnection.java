@@ -72,6 +72,7 @@ public class jTPCCConnection
 		stmtNewOrderSelectStockBatch[i] = dbConn.prepareStatement(stmtStr);
 		st += ",(?,?)";
 	}
+	stmtNewOrderSelectItemBatch = new PreparedStatement[16];
 	st = "SELECT i_id, i_price, i_name, i_data " +
 			"    FROM bmsql_item WHERE i_id in (?";
 	for (int i = 1; i <= 15; i ++) {
