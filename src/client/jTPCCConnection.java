@@ -14,7 +14,7 @@ import java.sql.*;
 
 public class jTPCCConnection
 {
-    public Connection          dbConn = null;
+    private Connection          dbConn = null;
     private int                 dbType = 0;
 
     public PreparedStatement    stmtNewOrderSelectWhseCust;
@@ -23,9 +23,9 @@ public class jTPCCConnection
     public PreparedStatement    stmtNewOrderInsertOrder;
     public PreparedStatement    stmtNewOrderInsertNewOrder;
     public PreparedStatement    stmtNewOrderSelectStock;
-    public PreparedStatement    stmtNewOrderSelectStockBatch;
+    public PreparedStatement    stmtNewOrderSelectStockBatch[];
     public PreparedStatement    stmtNewOrderSelectItem;
-    public PreparedStatement    stmtNewOrderSelectItemBatch;
+    public PreparedStatement    stmtNewOrderSelectItemBatch[];
     public PreparedStatement    stmtNewOrderUpdateStock;
     public PreparedStatement    stmtNewOrderInsertOrderLine;
 
@@ -60,8 +60,27 @@ public class jTPCCConnection
     {
 	this.dbConn = dbConn;
 	this.dbType = dbType;
+	stmtNewOrderSelectStockBatch = new PreparedStatement[16];
+	String st = "SELECT s_i_id, s_quantity, s_data, " +
+				"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
+				"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
+				"       s_dist_09, s_dist_10 " +
+				"    FROM bmsql_stock " +
+				"    WHERE (s_w_id, s_i_id) in ((?,?)";
+	for (int i = 1; i <= 15; i ++) {
+		String stmtStr = st + ") FOR UPDATE";
+		stmtNewOrderSelectStockBatch[i] = dbConn.prepareStatement(stmtStr);
+		st += ",(?,?)";
+	}
+	st = "SELECT i_id, i_price, i_name, i_data " +
+			"    FROM bmsql_item WHERE i_id in (?";
+	for (int i = 1; i <= 15; i ++) {
+		String stmtStr = st + ") FOR UPDATE";
+		stmtNewOrderSelectItemBatch[i] = dbConn.prepareStatement(stmtStr);
+		st += ",?";
+	}
 
-	// PreparedStataments for NEW_ORDER
+		// PreparedStataments for NEW_ORDER
 	stmtNewOrderSelectWhseCust = dbConn.prepareStatement(
 		"SELECT c_discount, c_last, c_credit, w_tax " +
 		"    FROM bmsql_customer " +
@@ -93,19 +112,6 @@ public class jTPCCConnection
 		"    FROM bmsql_stock " +
 		"    WHERE s_w_id = ? AND s_i_id = ? " +
 		"    FOR UPDATE");
-	stmtNewOrderSelectStockBatch = dbConn.prepareStatement(
-		"SELECT s_i_id, s_quantity, s_data, " +
-		"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
-		"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
-		"       s_dist_09, s_dist_10 " +
-		"    FROM bmsql_stock " +
-		"    WHERE s_pri_id in (?)" +
-		"    FOR UPDATE");
-	
-    stmtNewOrderSelectItemBatch = dbConn.prepareStatement(
-		"SELECT i_id, i_price, i_name, i_data " +
-		"    FROM bmsql_item " +
-		"    WHERE i_id in (?)");
 
 	stmtNewOrderSelectItem = dbConn.prepareStatement(
 		"SELECT i_price, i_name, i_data " +

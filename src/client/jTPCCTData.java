@@ -420,13 +420,13 @@ public class jTPCCTData
 	    insertOrderLineBatch = db.stmtNewOrderInsertOrderLine;
         updateStockBatch = db.stmtNewOrderUpdateStock;
 		int seq0 = ol_seq[0];
-        boolean same_warehouse = true;
+        boolean distinct_item = true;
         HashSet<Integer> set = new HashSet<Integer>();
 	    for (int i = 0; i < ol_cnt; i++)
 	    {
 		    int seq = ol_seq[i];
             if (set.contains(newOrder.ol_i_id[seq])) {
-                same_warehouse = false;
+                distinct_item = false;
                 break;
             }
             set.add(Integer.valueOf(newOrder.ol_i_id[seq]));
@@ -435,22 +435,15 @@ public class jTPCCTData
 		if (newOrder.d_id > 9) {
 			distName = "s_dist_" + String.valueOf(newOrder.d_id);
 		}
-		if (same_warehouse) {
-			String st = "SELECT i_id, i_price, i_name, i_data " +
-				"    FROM bmsql_item WHERE i_id in (";
+		if (distinct_item) {
+			stmt = db.stmtNewOrderSelectItemBatch[ol_cnt];
 			HashMap<Integer,Integer> map = new HashMap<Integer,Integer>();
 			String   i_data[] = new String[15];
 			for (int i = 0; i < ol_cnt; ++i) {
 				int seq = ol_seq[i];
-				st += String.valueOf(newOrder.ol_i_id[seq]);
-				if (i + 1 != ol_cnt) {
-					st += ',';
-				} else {
-					st += ')';
-				}
+				stmt.setInt(i + 1, newOrder.ol_i_id[seq]);
 				map.put(Integer.valueOf(newOrder.ol_i_id[seq]), Integer.valueOf(seq));
 			}
-			stmt = db.dbConn.prepareStatement(st);
 			rs = stmt.executeQuery();
 			while (rs.next())
 			{
@@ -466,25 +459,12 @@ public class jTPCCTData
 			}
 			rs.close();
 
-			st = "SELECT s_i_id, s_quantity, s_data, " +
-				"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
-				"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
-				"       s_dist_09, s_dist_10 " +
-				"    FROM bmsql_stock " +
-				"    WHERE s_pri_id in (";
-
+			stmt = db.stmtNewOrderSelectStockBatch[ol_cnt];
 			for (int i = 0; i < ol_cnt; ++i) {
 				int seq = ol_seq[i];
-				long s_pri_id = (long)newOrder.ol_supply_w_id[seq];
-				s_pri_id = s_pri_id * 1048576L + newOrder.ol_i_id[seq];
-				st += String.valueOf(s_pri_id);
-				if (i + 1 != ol_cnt) {
-					st += ',';
-				} else {
-					st += ") FOR UPDATE";
-				}
+				stmt.setInt(i * 2 + 1, newOrder.ol_supply_w_id[seq]);
+				stmt.setInt(i * 2 + 2, newOrder.ol_i_id[seq]);
 			}
-			stmt = db.dbConn.prepareStatement(st);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
 				int i_id = rs.getInt("s_i_id");
@@ -524,7 +504,7 @@ public class jTPCCTData
 		int seq = ol_seq[i];
 		String i_data;
 
-        if (!same_warehouse) {
+        if (!distinct_item) {
 		stmt = db.stmtNewOrderSelectItem;
 		stmt.setInt(1, newOrder.ol_i_id[seq]);
 		rs = stmt.executeQuery();
