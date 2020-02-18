@@ -421,20 +421,20 @@ public class jTPCCTData
         updateStockBatch = db.stmtNewOrderUpdateStock;
 		int seq0 = ol_seq[0];
         boolean distinct_item = true;
-        HashSet<Integer> set = new HashSet<Integer>();
+        HashSet<Integer> itemIds = new HashSet<Integer>();
 	    for (int i = 0; i < ol_cnt; i++)
 	    {
 		    int seq = ol_seq[i];
-            set.add(Integer.valueOf(newOrder.ol_i_id[seq]));
+            itemIds.add(Integer.valueOf(newOrder.ol_i_id[seq]));
 	    }
 		String distName = "s_dist_0" + String.valueOf(newOrder.d_id);
 		if (newOrder.d_id > 9) {
 			distName = "s_dist_" + String.valueOf(newOrder.d_id);
 		}
-		stmt = db.stmtNewOrderSelectItemBatch[set.size()];
-		HashMap<Integer, NewOrderItem> map = new HashMap<Integer,NewOrderItem>();
+		stmt = db.stmtNewOrderSelectItemBatch[itemIds.size()];
+		HashMap<Integer, NewOrderItem> itemMap = new HashMap<Integer,NewOrderItem>();
 		int i_idx = 0;
-		for (Integer x : set) {
+		for (Integer x : itemIds) {
 			i_idx ++;
 			stmt.setInt(i_idx, x.intValue());
 		}
@@ -447,45 +447,14 @@ public class jTPCCTData
 			item.i_price = rs.getDouble("i_price");
 			item.i_name = rs.getString("i_name");
 			item.i_data = rs.getString("i_data");
-			map.put(i_id, item);
-		}
-		rs.close();
-
-		stmt = db.stmtNewOrderSelectStockBatch[ol_cnt];
-		for (int i = 0; i < ol_cnt; ++i) {
-			int seq = ol_seq[i];
-			stmt.setInt(i * 2 + 1, newOrder.ol_supply_w_id[seq]);
-			stmt.setInt(i * 2 + 2, newOrder.ol_i_id[seq]);
-		}
-		rs = stmt.executeQuery();
-		while (rs.next()) {
-			int i_id = rs.getInt("s_i_id");
-			int w_id = rs.getInt("s_w_id");
-			NewOrderItem item = map.get(i_id);
-			if (item == null) {
-				continue;
-			}
-			// There may be two item having the same supply warehouse.
-			for (int i = 0; i < 15; i ++) {
-				int seq = ol_seq[i];
-				if (newOrder.ol_i_id[seq] == i_id && newOrder.ol_supply_w_id[seq] == w_id) {
-					newOrder.s_quantity[seq] = rs.getInt("s_quantity");
-					newOrder.ol_amount[seq] = item.i_price * newOrder.ol_quantity[seq];
-					newOrder.dist_value[seq] = rs.getString(distName);
-					if (item.i_data.contains("ORIGINAL") &&
-							rs.getString("s_data").contains("ORIGINAL"))
-						newOrder.brand_generic[seq] = new String("B");
-					else
-						newOrder.brand_generic[seq] = new String("G");
-				}
-			}
+			itemMap.put(i_id, item);
 		}
 		rs.close();
 		for (int i = 0; i < ol_cnt; i++)
 		{
 			int seq = ol_seq[i];
 			int i_id = newOrder.ol_i_id[seq];
-			NewOrderItem item = map.get(i_id);
+			NewOrderItem item = itemMap.get(i_id);
 
 			if (item == null) {
 				if (transRbk && (i_id < 1 ||
@@ -508,6 +477,44 @@ public class jTPCCTData
 				throw new Exception("ITEM " + newOrder.ol_i_id[seq] +
 						" not fount");
 			}
+		}
+
+		stmt = db.stmtNewOrderSelectStockBatch[ol_cnt];
+		for (int i = 0; i < ol_cnt; ++i) {
+			int seq = ol_seq[i];
+			stmt.setInt(i * 2 + 1, newOrder.ol_supply_w_id[seq]);
+			stmt.setInt(i * 2 + 2, newOrder.ol_i_id[seq]);
+		}
+		rs = stmt.executeQuery();
+		while (rs.next()) {
+			int i_id = rs.getInt("s_i_id");
+			int w_id = rs.getInt("s_w_id");
+			NewOrderItem item = itemMap.get(i_id);
+
+			// There may be two item having the same supply warehouse.
+			for (int i = 0; i < 15; i ++) {
+				int seq = ol_seq[i];
+				if (newOrder.ol_i_id[seq] == i_id && newOrder.ol_supply_w_id[seq] == w_id) {
+					newOrder.s_quantity[seq] = rs.getInt("s_quantity");
+					newOrder.dist_value[seq] = rs.getString(distName);
+					if (item != null) {
+						newOrder.ol_amount[seq] = item.i_price * newOrder.ol_quantity[seq];
+						if (item.i_data.contains("ORIGINAL") &&
+								rs.getString("s_data").contains("ORIGINAL"))
+							newOrder.brand_generic[seq] = new String("B");
+						else
+							newOrder.brand_generic[seq] = new String("G");
+					}
+				}
+			}
+		}
+		rs.close();
+
+
+	    for (int i = 0; i < ol_cnt; i++)
+	    {
+			int ol_number = i + 1;
+			int seq = ol_seq[i];
 			if (newOrder.dist_value[seq] == null)
 			{
 				throw new Exception("STOCK with" +
@@ -515,12 +522,8 @@ public class jTPCCTData
 						" S_I_ID=" + newOrder.ol_i_id[seq] +
 						" not fount");
 			}
-		}
 
-	    for (int i = 0; i < ol_cnt; i++)
-	    {
-		int ol_number = i + 1;
-		int seq = ol_seq[i];
+
 		total_amount += newOrder.ol_amount[seq] *
 				(1.0 - newOrder.c_discount) *
 				(1.0 + newOrder.w_tax + newOrder.d_tax);
