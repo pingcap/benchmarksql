@@ -465,7 +465,7 @@ public class jTPCCTData
 			if (item == null) {
 				continue;
 			}
-			// There may be too item having the same supply warehouse.
+			// There may be two item having the same supply warehouse.
 			for (int i = 0; i < 15; i ++) {
 				int seq = ol_seq[i];
 				if (newOrder.ol_i_id[seq] == i_id && newOrder.ol_supply_w_id[seq] == w_id) {
@@ -506,6 +506,13 @@ public class jTPCCTData
 				}
 				// This ITEM should have been there.
 				throw new Exception("ITEM " + newOrder.ol_i_id[seq] +
+						" not fount");
+			}
+			if (newOrder.dist_value[seq] == null)
+			{
+				throw new Exception("STOCK with" +
+						" S_W_ID=" + newOrder.ol_supply_w_id[seq] +
+						" S_I_ID=" + newOrder.ol_i_id[seq] +
 						" not fount");
 			}
 		}

@@ -81,7 +81,7 @@ public class jTPCCConnection
 		st += ",?";
 	}
 
-		// PreparedStataments for NEW_ORDER
+	// PreparedStataments for NEW_ORDER
 	stmtNewOrderSelectWhseCust = dbConn.prepareStatement(
 		"SELECT c_discount, c_last, c_credit, w_tax " +
 		"    FROM bmsql_customer " +
@@ -113,7 +113,6 @@ public class jTPCCConnection
 		"    FROM bmsql_stock " +
 		"    WHERE s_w_id = ? AND s_i_id = ? " +
 		"    FOR UPDATE");
-
 	stmtNewOrderSelectItem = dbConn.prepareStatement(
 		"SELECT i_price, i_name, i_data " +
 		"    FROM bmsql_item " +
