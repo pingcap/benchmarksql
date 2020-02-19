@@ -76,7 +76,7 @@ public class jTPCCConnection
 	st = "SELECT i_id, i_price, i_name, i_data " +
 			"    FROM bmsql_item WHERE i_id in (?";
 	for (int i = 1; i <= 15; i ++) {
-		String stmtStr = st + ") FOR UPDATE";
+		String stmtStr = st + ")";
 		stmtNewOrderSelectItemBatch[i] = dbConn.prepareStatement(stmtStr);
 		st += ",?";
 	}
