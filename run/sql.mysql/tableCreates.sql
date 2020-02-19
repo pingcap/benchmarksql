@@ -76,7 +76,7 @@ create table bmsql_new_order (
   no_d_id  integer   not null,
   no_o_id  integer   not null,
  constraint pk_new_order primary key (no_w_id, no_d_id, no_o_id)
-);
+) /*!90000 SHARD_ROW_ID_BITS=3 pre_split_regions=2 */;
 
 create table bmsql_oorder (
   o_w_id       integer      not null,
@@ -103,7 +103,7 @@ create table bmsql_order_line (
   ol_quantity     integer,
   ol_dist_info    char(24),
   constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_number)
-);
+) /*!90000 SHARD_ROW_ID_BITS=6 pre_split_regions=6 */;
 
 create table bmsql_item (
   i_id     integer      not null,

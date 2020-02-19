@@ -418,82 +418,111 @@ public class jTPCCTData
 
 	    // Per ORDER_LINE
 	    insertOrderLineBatch = db.stmtNewOrderInsertOrderLine;
-	    updateStockBatch = db.stmtNewOrderUpdateStock;
+        updateStockBatch = db.stmtNewOrderUpdateStock;
+		int seq0 = ol_seq[0];
+        boolean distinct_item = true;
+        HashSet<Integer> itemIds = new HashSet<Integer>();
 	    for (int i = 0; i < ol_cnt; i++)
 	    {
-		int ol_number = i + 1;
-		int seq = ol_seq[i];
-		String i_data;
-
-		stmt = db.stmtNewOrderSelectItem;
-		stmt.setInt(1, newOrder.ol_i_id[seq]);
-		rs = stmt.executeQuery();
-		if (!rs.next())
-		{
-		    rs.close();
-
-		    /*
-		     * 1% of NEW_ORDER transactions use an unused item
-		     * in the last line to simulate user entry errors.
-		     * Make sure this is precisely that case.
-		     */
-		    if (transRbk && (newOrder.ol_i_id[seq] < 1 ||
-				     newOrder.ol_i_id[seq] > 100000))
-		    {
-			/*
-			 * Clause 2.4.2.3 mandates that the entire
-			 * transaction profile up to here must be executed
-			 * before we can roll back, except for retrieving
-			 * the missing STOCK row and inserting this
-			 * ORDER_LINE row. Note that we haven't updated
-			 * STOCK rows or inserted any ORDER_LINE rows so
-			 * far, we only batched them up. So we must do
-			 * that now in order to satisfy 2.4.2.3.
-			 */
-			insertOrderLineBatch.executeBatch();
-			insertOrderLineBatch.clearBatch();
-			updateStockBatch.executeBatch();
-			updateStockBatch.clearBatch();
-
-			db.rollback();
-
-			newOrder.total_amount = total_amount;
-			newOrder.execution_status = new String(
-				"Item number is not valid");
-			return;
-		    }
-
-		    // This ITEM should have been there.
-		    throw new Exception("ITEM " + newOrder.ol_i_id[seq] +
-					" not fount");
+		    int seq = ol_seq[i];
+            itemIds.add(Integer.valueOf(newOrder.ol_i_id[seq]));
+	    }
+		String distName = "s_dist_0" + String.valueOf(newOrder.d_id);
+		if (newOrder.d_id > 9) {
+			distName = "s_dist_" + String.valueOf(newOrder.d_id);
 		}
-		// Found ITEM
-		newOrder.i_name[seq] = rs.getString("i_name");
-		newOrder.i_price[seq] = rs.getDouble("i_price");
-		i_data = rs.getString("i_data");
+		stmt = db.stmtNewOrderSelectItemBatch[itemIds.size()];
+		HashMap<Integer, NewOrderItem> itemMap = new HashMap<Integer,NewOrderItem>();
+		int i_idx = 0;
+		for (Integer x : itemIds) {
+			i_idx ++;
+			stmt.setInt(i_idx, x.intValue());
+		}
+		rs = stmt.executeQuery();
+		while (rs.next())
+		{
+			int i_id = rs.getInt("i_id");
+			NewOrderItem item = new NewOrderItem();
+			item.i_id = i_id;
+			item.i_price = rs.getDouble("i_price");
+			item.i_name = rs.getString("i_name");
+			item.i_data = rs.getString("i_data");
+			itemMap.put(i_id, item);
+		}
+		rs.close();
+		for (int i = 0; i < ol_cnt; i++)
+		{
+			int seq = ol_seq[i];
+			int i_id = newOrder.ol_i_id[seq];
+			NewOrderItem item = itemMap.get(i_id);
+
+			if (item == null) {
+				if (transRbk && (i_id < 1 ||
+						i_id > 100000))
+				{
+					/*
+					 * Clause 2.4.2.3 mandates that the entire
+					 * transaction profile up to here must be executed
+					 * before we can roll back, except for retrieving
+					 * the missing STOCK row and inserting this
+					 * ORDER_LINE row. Note that we haven't updated
+					 * STOCK rows or inserted any ORDER_LINE rows so
+					 * far, we only batched them up. So we must do
+					 * that now in order to satisfy 2.4.2.3.
+					 */
+					db.rollback();
+					return;
+				}
+				// This ITEM should have been there.
+				throw new Exception("ITEM " + newOrder.ol_i_id[seq] +
+						" not fount");
+			}
+		}
+
+		stmt = db.stmtNewOrderSelectStockBatch[ol_cnt];
+		for (int i = 0; i < ol_cnt; ++i) {
+			int seq = ol_seq[i];
+			stmt.setInt(i * 2 + 1, newOrder.ol_supply_w_id[seq]);
+			stmt.setInt(i * 2 + 2, newOrder.ol_i_id[seq]);
+		}
+		rs = stmt.executeQuery();
+		while (rs.next()) {
+			int i_id = rs.getInt("s_i_id");
+			int w_id = rs.getInt("s_w_id");
+			NewOrderItem item = itemMap.get(i_id);
+
+			// There may be two item having the same supply warehouse.
+			for (int i = 0; i < 15; i ++) {
+				int seq = ol_seq[i];
+				if (newOrder.ol_i_id[seq] == i_id && newOrder.ol_supply_w_id[seq] == w_id) {
+					newOrder.s_quantity[seq] = rs.getInt("s_quantity");
+					newOrder.dist_value[seq] = rs.getString(distName);
+					if (item != null) {
+						newOrder.ol_amount[seq] = item.i_price * newOrder.ol_quantity[seq];
+						if (item.i_data.contains("ORIGINAL") &&
+								rs.getString("s_data").contains("ORIGINAL"))
+							newOrder.brand_generic[seq] = new String("B");
+						else
+							newOrder.brand_generic[seq] = new String("G");
+					}
+				}
+			}
+		}
 		rs.close();
 
-		// Select STOCK for update.
-		stmt = db.stmtNewOrderSelectStock;
-		stmt.setInt(1, newOrder.ol_supply_w_id[seq]);
-		stmt.setInt(2, newOrder.ol_i_id[seq]);
-		rs = stmt.executeQuery();
-		if (!rs.next())
-		{
-		    throw new Exception("STOCK with" +
-				" S_W_ID=" + newOrder.ol_supply_w_id[seq] +
-				" S_I_ID=" + newOrder.ol_i_id[seq] +
-				" not fount");
-		}
-		newOrder.s_quantity[seq] = rs.getInt("s_quantity");
-		// Leave the ResultSet open ... we need it for the s_dist_NN.
 
-		newOrder.ol_amount[seq] = newOrder.i_price[seq] * newOrder.ol_quantity[seq];
-		if (i_data.contains("ORIGINAL") &&
-		    rs.getString("s_data").contains("ORIGINAL"))
-		    newOrder.brand_generic[seq] = new String("B");
-		else
-		    newOrder.brand_generic[seq] = new String("G");
+	    for (int i = 0; i < ol_cnt; i++)
+	    {
+			int ol_number = i + 1;
+			int seq = ol_seq[i];
+			if (newOrder.dist_value[seq] == null)
+			{
+				throw new Exception("STOCK with" +
+						" S_W_ID=" + newOrder.ol_supply_w_id[seq] +
+						" S_I_ID=" + newOrder.ol_i_id[seq] +
+						" not fount");
+			}
+
 
 		total_amount += newOrder.ol_amount[seq] *
 				(1.0 - newOrder.c_discount) *
@@ -523,42 +552,9 @@ public class jTPCCTData
 		insertOrderLineBatch.setInt(6, newOrder.ol_supply_w_id[seq]);
 		insertOrderLineBatch.setInt(7, newOrder.ol_quantity[seq]);
 		insertOrderLineBatch.setDouble(8, newOrder.ol_amount[seq]);
-		switch (newOrder.d_id)
-		{
-		    case 1:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_01"));
-			break;
-		    case 2:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_02"));
-			break;
-		    case 3:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_03"));
-			break;
-		    case 4:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_04"));
-			break;
-		    case 5:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_05"));
-			break;
-		    case 6:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_06"));
-			break;
-		    case 7:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_07"));
-			break;
-		    case 8:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_08"));
-			break;
-		    case 9:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_09"));
-			break;
-		    case 10:
-			insertOrderLineBatch.setString(9, rs.getString("s_dist_10"));
-			break;
-		}
+		insertOrderLineBatch.setString(9, newOrder.dist_value[seq]);
 		insertOrderLineBatch.addBatch();
 	    }
-	    rs.close();
 
 	    // All done ... execute the batches.
 	    updateStockBatch.executeBatch();
@@ -670,6 +666,13 @@ public class jTPCCTData
 		       newOrder.execution_status, newOrder.total_amount);
 	}
     }
+	private class NewOrderItem {
+		/* terminal input data */
+		public int i_id;
+		public double i_price;
+		public String i_name;
+		public String i_data;
+	}
 
     private class NewOrderData
     {
@@ -699,6 +702,7 @@ public class jTPCCTData
 	public String   brand_generic[] = new String[15];
 	public double   i_price[] = new double[15];
 	public double   ol_amount[] = new double[15];
+	public String   dist_value[] = new String[15];
     }
 
     /* **********************************************************************
