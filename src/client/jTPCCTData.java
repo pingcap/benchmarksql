@@ -1690,7 +1690,7 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 
 		while (rs.next())
 		{
-			d_id = rs.getInt("o_d_id");
+			d_id = rs.getInt("ol_d_id");
 			deliveryBG.sum_ol_amount[d_id - 1]	= rs.getDouble("sum_ol_amount");
 		}
 		rs.close();

@@ -292,7 +292,7 @@ public class jTPCCConnection
 		"    WHERE (ol_w_id,ol_d_id,ol_o_id) IN (" +
 		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
 		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)" +
-		") GROUP BY o_d_id");
+		") GROUP BY ol_d_id");
 
 
 	stmtDeliveryBGUpdateOrderLine = dbConn.prepareStatement(
