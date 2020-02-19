@@ -268,7 +268,7 @@ public class jTPCCConnection
         "    FOR UPDATE");
 	stmtDeliveryBGDeleteOldestNewOrder = dbConn.prepareStatement(
 		"DELETE FROM bmsql_new_order " +
-		"    WHERE (o_w_id,o_d_id,o_id) IN (" +
+		"    WHERE (no_w_id,no_d_id,no_o_id) IN (" +
 		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
 		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?))");
 
@@ -289,7 +289,7 @@ public class jTPCCConnection
 	stmtDeliveryBGSelectSumOLAmount = dbConn.prepareStatement(
 		"SELECT sum(ol_amount) AS sum_ol_amount, ol_d_id" +
 		"    FROM bmsql_order_line " +
-		"    WHERE (o_w_id,o_d_id,o_id) IN (" +
+		"    WHERE (ol_w_id,ol_d_id,ol_o_id) IN (" +
 		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
 		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)" +
 		") GROUP BY o_d_id");
@@ -298,7 +298,7 @@ public class jTPCCConnection
 	stmtDeliveryBGUpdateOrderLine = dbConn.prepareStatement(
 		"UPDATE bmsql_order_line " +
 		"    SET ol_delivery_d = ? " +
-		"    WHERE (o_w_id,o_d_id,o_id) IN (" +
+		"    WHERE (ol_w_id,ol_d_id,ol_o_id) IN (" +
 		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
 		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?))");
 
