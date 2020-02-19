@@ -643,11 +643,11 @@ public class jTPCC implements jTPCCConfig
 	{
 	    transactionCount++;
 	    fastNewOrderCounter += newOrder;
-	    Long counter = costPerWorkerload.get(transactionType);
-	    if (counter == null) {
-	        costPerWorkerload.put(transactionType, Long.valueOf(executionTime));
+		Long counter = costPerWorkerload.get(transactionType);
+		if (counter == null) {
+			costPerWorkerload.put(transactionType, Long.valueOf(executionTime));
 		} else {
-	    	counter += executionTime;
+			costPerWorkerload.put(transactionType, counter + executionTime);
 		}
 	}
 
@@ -697,10 +697,10 @@ public class jTPCC implements jTPCCConfig
 	log.info("Term-00, Session Start     = " + sessionStart );
 	log.info("Term-00, Session End       = " + sessionEnd);
 	log.info("Term-00, Transaction Count = " + (transactionCount-1));
-	for (String key : costPerWorkerload.keySet()) {
-		Long value = costPerWorkerload.get(key);
-		log.info("executeTime[" + key + "]=" + value.toString());
-	}
+		for (String key : costPerWorkerload.keySet()) {
+			Long value = costPerWorkerload.get(key);
+			log.info("executeTime[" + key + "]=" + value.toString());
+		}
     }
 
     private void printMessage(String message)
