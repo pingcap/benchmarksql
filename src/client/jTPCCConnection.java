@@ -47,8 +47,6 @@ public class jTPCCConnection
 
     public PreparedStatement    stmtStockLevelSelectLow;
 
-    public PreparedStatement    stmtDeliveryBGSelectNewOrderCount;
-	public PreparedStatement    stmtDeliveryBGSelectNewOrder100;
 	public PreparedStatement    stmtDeliveryBGSelectOldestNewOrder;
     public PreparedStatement    stmtDeliveryBGDeleteOldestNewOrder;
     public PreparedStatement    stmtDeliveryBGSelectOrder;
@@ -247,16 +245,6 @@ public class jTPCCConnection
 		break;
 	}
 
-	stmtDeliveryBGSelectNewOrderCount = dbConn.prepareStatement(
-			"SELECT count(*) as count" +
-						"    FROM bmsql_new_order " +
-						"    WHERE no_w_id = ?");
-
-	stmtDeliveryBGSelectNewOrder100 = dbConn.prepareStatement(
-			"SELECT no_o_id " +
-					"    FROM bmsql_new_order WHERE no_w_id = ?" +
-					"    ORDER BY (no_w_id, no_d_id, no_o_id) ASC" +
-					"    LIMIT 100");
 
 		// PreparedStatements for DELIVERY_BG
     stmtDeliveryBGSelectOldestNewOrder = dbConn.prepareStatement(
