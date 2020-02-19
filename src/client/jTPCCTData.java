@@ -296,7 +296,6 @@ public class jTPCCTData
     {
 	PreparedStatement       stmt;
 	PreparedStatement       insertOrderLineBatch;
-	PreparedStatement       updateStockBatch;
 	ResultSet               rs;
 
 	int                     o_id;
@@ -418,7 +417,6 @@ public class jTPCCTData
 
 	    // Per ORDER_LINE
 	    insertOrderLineBatch = db.stmtNewOrderInsertOrderLine;
-        updateStockBatch = db.stmtNewOrderUpdateStock;
 		int seq0 = ol_seq[0];
         boolean distinct_item = true;
         HashSet<Integer> itemIds = new HashSet<Integer>();
@@ -524,41 +522,39 @@ public class jTPCCTData
 			}
 
 
-		total_amount += newOrder.ol_amount[seq] *
-				(1.0 - newOrder.c_discount) *
-				(1.0 + newOrder.w_tax + newOrder.d_tax);
+			total_amount += newOrder.ol_amount[seq] *
+					(1.0 - newOrder.c_discount) *
+					(1.0 + newOrder.w_tax + newOrder.d_tax);
+			stmt = db.stmtNewOrderUpdateStock;
+			// Update the STOCK row.
+			if (newOrder.s_quantity[seq] >= newOrder.ol_quantity[seq] + 10)
+				stmt.setInt(1, newOrder.s_quantity[seq] -
+						newOrder.ol_quantity[seq]);
+			else
+				stmt.setInt(1, newOrder.s_quantity[seq] + 91);
+			stmt.setInt(2, newOrder.ol_quantity[seq]);
+			if (newOrder.ol_supply_w_id[seq] == newOrder.w_id)
+				stmt.setInt(3, 0);
+			else
+				stmt.setInt(3, 1);
+			stmt.setInt(4, newOrder.ol_supply_w_id[seq]);
+			stmt.setInt(5, newOrder.ol_i_id[seq]);
+			stmt.executeUpdate();
 
-		// Update the STOCK row.
-		if (newOrder.s_quantity[seq] >= newOrder.ol_quantity[seq] + 10)
-		    updateStockBatch.setInt(1, newOrder.s_quantity[seq] -
-					       newOrder.ol_quantity[seq]);
-		else
-		    updateStockBatch.setInt(1, newOrder.s_quantity[seq] + 91);
-		updateStockBatch.setInt(2, newOrder.ol_quantity[seq]);
-		if (newOrder.ol_supply_w_id[seq] == newOrder.w_id)
-		    updateStockBatch.setInt(3, 0);
-		else
-		    updateStockBatch.setInt(3, 1);
-		updateStockBatch.setInt(4, newOrder.ol_supply_w_id[seq]);
-		updateStockBatch.setInt(5, newOrder.ol_i_id[seq]);
-		updateStockBatch.addBatch();
-
-		// Insert the ORDER_LINE row.
-		insertOrderLineBatch.setInt(1, o_id);
-		insertOrderLineBatch.setInt(2, newOrder.d_id);
-		insertOrderLineBatch.setInt(3, newOrder.w_id);
-		insertOrderLineBatch.setInt(4, ol_number);
-		insertOrderLineBatch.setInt(5, newOrder.ol_i_id[seq]);
-		insertOrderLineBatch.setInt(6, newOrder.ol_supply_w_id[seq]);
-		insertOrderLineBatch.setInt(7, newOrder.ol_quantity[seq]);
-		insertOrderLineBatch.setDouble(8, newOrder.ol_amount[seq]);
-		insertOrderLineBatch.setString(9, newOrder.dist_value[seq]);
-		insertOrderLineBatch.addBatch();
+			// Insert the ORDER_LINE row.
+			insertOrderLineBatch.setInt(1, o_id);
+			insertOrderLineBatch.setInt(2, newOrder.d_id);
+			insertOrderLineBatch.setInt(3, newOrder.w_id);
+			insertOrderLineBatch.setInt(4, ol_number);
+			insertOrderLineBatch.setInt(5, newOrder.ol_i_id[seq]);
+			insertOrderLineBatch.setInt(6, newOrder.ol_supply_w_id[seq]);
+			insertOrderLineBatch.setInt(7, newOrder.ol_quantity[seq]);
+			insertOrderLineBatch.setDouble(8, newOrder.ol_amount[seq]);
+			insertOrderLineBatch.setString(9, newOrder.dist_value[seq]);
+			insertOrderLineBatch.addBatch();
 	    }
 
 	    // All done ... execute the batches.
-	    updateStockBatch.executeBatch();
-	    updateStockBatch.clearBatch();
 	    insertOrderLineBatch.executeBatch();
 	    insertOrderLineBatch.clearBatch();
 
@@ -577,7 +573,6 @@ public class jTPCCTData
 
 	    try
 	    {
-		db.stmtNewOrderUpdateStock.clearBatch();
 		db.stmtNewOrderInsertOrderLine.clearBatch();
 		db.rollback();
 	    }
@@ -591,7 +586,6 @@ public class jTPCCTData
 	{
 	    try
 	    {
-		db.stmtNewOrderUpdateStock.clearBatch();
 		db.stmtNewOrderInsertOrderLine.clearBatch();
 		db.rollback();
 	    }
