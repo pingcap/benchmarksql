@@ -296,7 +296,6 @@ public class jTPCCTData
     {
 	PreparedStatement       stmt;
 	PreparedStatement       insertOrderLineBatch;
-	PreparedStatement       updateStockBatch;
 	ResultSet               rs;
 
 	int                     o_id;
