@@ -1625,6 +1625,13 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 			}
 			deliveryBG.delivered_o_id[d_id - 1] = o_id;
 		}
+		stmt1 = db.stmtDeliveryBGDeleteOldestNewOrder;
+		for (d_id = 1; d_id <= 10; d_id++) {
+			stmt1.setInt(d_id * 3 - 2, deliveryBG.w_id);
+			stmt1.setInt(d_id * 3 - 1, d_id);
+			stmt1.setInt(d_id * 3, deliveryBG.delivered_o_id[d_id - 1]);
+		}
+		stmt1.executeUpdate();
 
 		/*
 		 * We found out oldest undelivered order for this DISTRICT
