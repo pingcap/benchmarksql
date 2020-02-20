@@ -484,10 +484,12 @@ public class jTPCCTData
 			stmt.setInt(i * 2 + 2, newOrder.ol_i_id[seq]);
 		}
 		rs = stmt.executeQuery();
+		ArrayList<NewOrderItem> items = new ArrayList<NewOrderItem>();
 		while (rs.next()) {
 			int i_id = rs.getInt("s_i_id");
 			int w_id = rs.getInt("s_w_id");
 			NewOrderItem item = itemMap.get(i_id);
+			items.add(item);
 
 			// There may be two item having the same supply warehouse.
 			for (int i = 0; i < 15; i ++) {
@@ -515,9 +517,13 @@ public class jTPCCTData
 			int seq = ol_seq[i];
 			if (newOrder.dist_value[seq] == null)
 			{
+				for(NewOrderItem item : items) {
+					System.out.println("NewOrderItem: " + item.i_id + " name=" + item.i_name);
+				}
 				throw new Exception("STOCK with" +
 						" S_W_ID=" + newOrder.ol_supply_w_id[seq] +
 						" S_I_ID=" + newOrder.ol_i_id[seq] +
+                        " OL_SUPPLY_W_ID=" + newOrder.ol_supply_w_id[seq] +
 						" not fount");
 			}
 
