@@ -272,7 +272,8 @@ public class jTPCCTData
 	    else
 		newOrder.ol_supply_w_id[i] = rnd.nextInt(1, numWarehouses);
 	    newOrder.ol_quantity[i] = rnd.nextInt(1, 10);
-	    i++;
+		newOrder.found[i] = false;
+		i++;
 	}
 
 	if (rnd.nextInt(1, 100) == 1)           // 2.4.1.4
@@ -490,11 +491,12 @@ public class jTPCCTData
 			NewOrderItem item = itemMap.get(i_id);
 
 			// There may be two item having the same supply warehouse.
-			for (int i = 0; i < 15; i ++) {
+			for (int i = 0; i < ol_cnt; i ++) {
 				int seq = ol_seq[i];
 				if (newOrder.ol_i_id[seq] == i_id && newOrder.ol_supply_w_id[seq] == w_id) {
 					newOrder.s_quantity[seq] = rs.getInt("s_quantity");
 					newOrder.dist_value[seq] = rs.getString(distName);
+					newOrder.found[seq] = true;
 					if (item != null) {
 						newOrder.ol_amount[seq] = item.i_price * newOrder.ol_quantity[seq];
 						if (item.i_data.contains("ORIGINAL") &&
@@ -513,7 +515,7 @@ public class jTPCCTData
 	    {
 			int ol_number = i + 1;
 			int seq = ol_seq[i];
-			if (newOrder.dist_value[seq] == null)
+			if (!newOrder.found[seq])
 			{
 				throw new Exception("STOCK with" +
 						" S_W_ID=" + newOrder.ol_supply_w_id[seq] +
@@ -697,6 +699,7 @@ public class jTPCCTData
 	public double   i_price[] = new double[15];
 	public double   ol_amount[] = new double[15];
 	public String   dist_value[] = new String[15];
+	public boolean	found[] = new boolean[15];
     }
 
     /* **********************************************************************
