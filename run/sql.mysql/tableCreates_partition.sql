@@ -76,7 +76,7 @@ create table bmsql_new_order (
   no_d_id  integer   not null,
   no_o_id  integer   not null,
  constraint pk_new_order primary key (no_w_id, no_d_id, no_o_id)
-) partition by hash(no_w_id) partitions 1024;
+) partition by hash(no_w_id) partitions 128;
 
 create table bmsql_oorder (
   o_w_id       integer      not null,
@@ -89,7 +89,7 @@ create table bmsql_oorder (
   o_entry_d    timestamp,
   constraint pk_oorder primary key (o_w_id, o_d_id, o_id),
   constraint bmsql_oorder_idx1 unique key (o_w_id, o_d_id, o_carrier_id, o_id)
-);
+) partition by hash(o_w_id) partitions 128;
 
 create table bmsql_order_line (
   ol_w_id         integer   not null,
@@ -103,7 +103,7 @@ create table bmsql_order_line (
   ol_quantity     integer,
   ol_dist_info    char(24),
   constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_number)
-);
+) partition by hash(ol_w_id) partitions 1024;
 
 create table bmsql_item (
   i_id     integer      not null,
@@ -112,7 +112,7 @@ create table bmsql_item (
   i_data   varchar(50),
   i_im_id  integer,
   constraint pk_item primary key (i_id)
-) partition by hash(i_id) partitions 1024;
+);
 
 create table bmsql_stock (
   s_w_id       integer       not null,
@@ -133,5 +133,5 @@ create table bmsql_stock (
   s_dist_09    char(24),
   s_dist_10    char(24),
   constraint pk_stock primary key (s_w_id, s_i_id)
-);
+) partition by hash(ol_w_id) partitions 1024;
 
