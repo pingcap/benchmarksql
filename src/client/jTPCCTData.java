@@ -1538,39 +1538,43 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
      * **********************************************************************
      * *********************************************************************/
     private void generateDeliveryBG(int w_id, long due, String ol_delivery_d,
-				    jTPCCTData parent)
-    {
-	/*
-	 * The DELIVERY_BG part is created as a result of executing the
-	 * foreground part of the DELIVERY transaction. Because of that
-	 * it inherits certain information from it.
-	 */
-	numWarehouses           = parent.numWarehouses;
-	terminalWarehouse       = parent.terminalWarehouse;
-	terminalDistrict        = parent.terminalDistrict;
+				    jTPCCTData parent) {
+		/*
+		 * The DELIVERY_BG part is created as a result of executing the
+		 * foreground part of the DELIVERY transaction. Because of that
+		 * it inherits certain information from it.
+		 */
+		numWarehouses = parent.numWarehouses;
+		terminalWarehouse = parent.terminalWarehouse;
+		terminalDistrict = parent.terminalDistrict;
 
-	transType       = TT_DELIVERY_BG;
-	transDue        = due;
-	transStart      = 0;
-	transEnd        = 0;
-	transRbk        = false;
-	transError      = null;
+		transType = TT_DELIVERY_BG;
+		transDue = due;
+		transStart = 0;
+		transEnd = 0;
+		transRbk = false;
+		transError = null;
 
-	newOrder        = null;
-	payment         = null;
-	orderStatus     = null;
-	stockLevel      = null;
-	delivery        = null;
-	deliveryBG      = new DeliveryBGData();
+		newOrder = null;
+		payment = null;
+		orderStatus = null;
+		stockLevel = null;
+		delivery = null;
+		deliveryBG = new DeliveryBGData();
 
-	deliveryBG.w_id = parent.delivery.w_id;
-	deliveryBG.o_carrier_id = parent.delivery.o_carrier_id;
-	deliveryBG.ol_delivery_d = ol_delivery_d;
+		deliveryBG.w_id = parent.delivery.w_id;
+		deliveryBG.o_carrier_id = parent.delivery.o_carrier_id;
+		deliveryBG.ol_delivery_d = ol_delivery_d;
 
-	deliveryBG.delivered_o_id = new int[10];
-	for (int i = 0; i < 10; i++)
-	    deliveryBG.delivered_o_id[i] = -1;
-    }
+		deliveryBG.delivered_o_id = new int[10];
+		deliveryBG.delivered_c_id = new int[10];
+		deliveryBG.sum_ol_amount = new double[10];
+		for (int i = 0; i < 10; i++) {
+			deliveryBG.delivered_o_id[i] = -1;
+			deliveryBG.sum_ol_amount[i] = -1.0;
+			deliveryBG.delivered_c_id[i] = -1;
+		}
+	}
 
     private void executeDeliveryBG(Logger log, jTPCCConnection db)
 	throws Exception
@@ -1587,57 +1591,47 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 
 	try
 	{
-	    for (d_id = 1; d_id <= 10; d_id++)
-	    {
-		o_id = -1;
-
-		stmt1 = db.stmtDeliveryBGSelectOldestNewOrder;
-		stmt2 = db.stmtDeliveryBGDeleteOldestNewOrder;
-
-		/*
-		 * Try to find the oldest undelivered order for this
-		 * DISTRICT. There may not be one, which is a case
-		 * that needs to be reportd.
-		 */
-		while (o_id < 0)
-		{
-		    stmt1.setInt(1, deliveryBG.w_id);
-		    stmt1.setInt(2, d_id);
-		    rs = stmt1.executeQuery();
-		    if (!rs.next())
-		    {
-			rs.close();
-			break;
-		    }
-		    o_id = rs.getInt("no_o_id");
-		    rs.close();
-
-		    stmt2.setInt(1, deliveryBG.w_id);
-		    stmt2.setInt(2, d_id);
-		    stmt2.setInt(3, o_id);
-		    rc = stmt2.executeUpdate();
-		    if (rc == 0)
-		    {
-			/*
-			 * Failed to delete the NEW_ORDER row. This is not
-			 * an error since for concurrency reasons we did
-			 * not select FOR UPDATE above. It is possible that
-			 * another, concurrent DELIVERY_BG transaction just
-			 * deleted this row and is working on it now. We
-			 * simply got back and try to get the next one.
-			 * This logic only works in READ_COMMITTED isolation
-			 * level and will cause SQLExceptions in anything
-			 * higher than that.
-			 */
+	    for (d_id = 1; d_id <= 10; d_id++) {
 			o_id = -1;
-		    }
-		}
 
-		if (o_id < 0)
-		{
-		    // No undelivered NEW_ORDER found for this DISTRICT.
-		    continue;
+			stmt1 = db.stmtDeliveryBGSelectOldestNewOrder;
+
+			/*
+			 * Try to find the oldest undelivered order for this
+			 * DISTRICT. There may not be one, which is a case
+			 * that needs to be reportd.
+			 */
+			while (o_id < 0) {
+				stmt1.setInt(1, deliveryBG.w_id);
+				stmt1.setInt(2, d_id);
+				rs = stmt1.executeQuery();
+				if (!rs.next()) {
+					rs.close();
+					break;
+				}
+				o_id = rs.getInt("no_o_id");
+				rs.close();
+				/*
+				 * This logic only works in SNAPSHOT isolation
+				 * level. Because we select new_order for update,
+				 * the order must be not selected by other termnial
+				 * as long as this SQL statement return it.
+				 */
+			}
+
+			if (o_id < 0) {
+				// No undelivered NEW_ORDER found for this DISTRICT.
+				continue;
+			}
+			deliveryBG.delivered_o_id[d_id - 1] = o_id;
 		}
+		stmt1 = db.stmtDeliveryBGDeleteOldestNewOrder;
+		for (d_id = 1; d_id <= 10; d_id++) {
+			stmt1.setInt(d_id * 3 - 2, deliveryBG.w_id);
+			stmt1.setInt(d_id * 3 - 1, d_id);
+			stmt1.setInt(d_id * 3, deliveryBG.delivered_o_id[d_id - 1]);
+		}
+		stmt1.executeUpdate();
 
 		/*
 		 * We found out oldest undelivered order for this DISTRICT
@@ -1648,65 +1642,88 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 		// Update the ORDER setting the o_carrier_id.
 		stmt1 = db.stmtDeliveryBGUpdateOrder;
 		stmt1.setInt(1, deliveryBG.o_carrier_id);
-		stmt1.setInt(2, deliveryBG.w_id);
-		stmt1.setInt(3, d_id);
-		stmt1.setInt(4, o_id);
+		for (d_id = 1; d_id <= 10; d_id++) {
+			stmt1.setInt(d_id * 3 -1, deliveryBG.w_id);
+			stmt1.setInt(d_id * 3, d_id);
+			stmt1.setInt(d_id * 3 + 1, deliveryBG.delivered_o_id[d_id - 1]);
+		}
+
 		stmt1.executeUpdate();
 
 		// Get the o_c_id from the ORDER.
 		stmt1 = db.stmtDeliveryBGSelectOrder;
-		stmt1.setInt(1, deliveryBG.w_id);
-		stmt1.setInt(2, d_id);
-		stmt1.setInt(3, o_id);
-		rs = stmt1.executeQuery();
-		if (!rs.next())
-		{
-		    rs.close();
-		    throw new Exception("ORDER in DELIVERY_BG for" +
-			" O_W_ID=" + deliveryBG.w_id +
-			" O_D_ID=" + d_id +
-			" O_ID=" + o_id + " not found");
+		for (d_id = 1; d_id <= 10; d_id++) {
+			stmt1.setInt(d_id * 3 - 2, deliveryBG.w_id);
+			stmt1.setInt(d_id * 3 - 1, d_id);
+			stmt1.setInt(d_id * 3, deliveryBG.delivered_o_id[d_id - 1]);
 		}
-		c_id = rs.getInt("o_c_id");
+		rs = stmt1.executeQuery();
+		while (rs.next())
+		{
+			d_id = rs.getInt("o_d_id");
+			c_id = rs.getInt("o_c_id");
+			deliveryBG.delivered_c_id[d_id - 1]	= c_id;
+		}
 		rs.close();
+		for (d_id = 1; d_id <= 10; d_id++) {
+			o_id = deliveryBG.delivered_o_id[d_id - 1];
+			if (o_id >= 0 && deliveryBG.delivered_c_id[d_id - 1] < 0) {
+				throw new Exception("ORDER in DELIVERY_BG for" +
+						" O_W_ID=" + deliveryBG.w_id +
+						" O_D_ID=" + d_id +
+						" O_ID=" + o_id + " not found");
+			}
+		}
 
 		// Update ORDER_LINE setting the ol_delivery_d.
 		stmt1 = db.stmtDeliveryBGUpdateOrderLine;
 		stmt1.setTimestamp(1, new java.sql.Timestamp(now));
-		stmt1.setInt(2, deliveryBG.w_id);
-		stmt1.setInt(3, d_id);
-		stmt1.setInt(4, o_id);
+		for (d_id = 1; d_id <= 10; d_id++) {
+			stmt1.setInt(d_id * 3 - 1, deliveryBG.w_id);
+			stmt1.setInt(d_id * 3, d_id);
+			stmt1.setInt(d_id * 3 + 1, deliveryBG.delivered_o_id[d_id - 1]);
+		}
 		stmt1.executeUpdate();
 
 		// Select the sum(ol_amount) from ORDER_LINE.
+
 		stmt1 = db.stmtDeliveryBGSelectSumOLAmount;
-		stmt1.setInt(1, deliveryBG.w_id);
-		stmt1.setInt(2, d_id);
-		stmt1.setInt(3, o_id);
-		rs = stmt1.executeQuery();
-		if (!rs.next())
-		{
-		    rs.close();
-		    throw new Exception("sum(OL_AMOUNT) for ORDER_LINEs with " +
-			" OL_W_ID=" + deliveryBG.w_id +
-			" OL_D_ID=" + d_id +
-			" OL_O_ID=" + o_id + " not found");
+		for (d_id = 1; d_id <= 10; d_id++) {
+			stmt1.setInt(d_id * 3 - 2, deliveryBG.w_id);
+			stmt1.setInt(d_id * 3 - 1, d_id);
+			stmt1.setInt(d_id * 3, deliveryBG.delivered_o_id[d_id - 1]);
 		}
-		sum_ol_amount = rs.getDouble("sum_ol_amount");
+		rs = stmt1.executeQuery();
+
+		while (rs.next())
+		{
+			d_id = rs.getInt("ol_d_id");
+			deliveryBG.sum_ol_amount[d_id - 1]	= rs.getDouble("sum_ol_amount");
+		}
 		rs.close();
 
 		// Update the CUSTOMER.
-		stmt1 = db.stmtDeliveryBGUpdateCustomer;
-		stmt1.setDouble(1, sum_ol_amount);
-		stmt1.setInt(2, deliveryBG.w_id);
-		stmt1.setInt(3, d_id);
-		stmt1.setInt(4, c_id);
-		stmt1.executeUpdate();
-
-		// Recored the delivered O_ID in the DELIVERY_BG
-		deliveryBG.delivered_o_id[d_id - 1] = o_id;
+		for (d_id = 1; d_id <= 10; d_id ++) {
+			o_id = deliveryBG.delivered_o_id[d_id - 1];
+			if (o_id < 0) {
+				continue;
+			}
+			double ans = deliveryBG.sum_ol_amount[d_id - 1];
+			if (ans < 0) {
+				throw new Exception("sum(OL_AMOUNT) for ORDER_LINEs with " +
+						" OL_W_ID=" + deliveryBG.w_id +
+						" OL_D_ID=" + d_id +
+						" OL_O_ID=" + o_id + " not found");
+			}
+			c_id = deliveryBG.delivered_c_id[d_id - 1];
+			stmt1 = db.stmtDeliveryBGUpdateCustomer;
+			stmt1.setDouble(1, ans);
+			stmt1.setInt(2, deliveryBG.w_id);
+			stmt1.setInt(3, d_id);
+			stmt1.setInt(4, c_id);
+			stmt1.executeUpdate();
+			// Recored the delivered O_ID in the DELIVERY_BG
 	    }
-
 	    db.commit();
 	}
 	catch (SQLException se)
@@ -1784,5 +1801,7 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 	public String   ol_delivery_d;
 
 	public int      delivered_o_id[];
+	public int      delivered_c_id[];
+	public double   sum_ol_amount[];
     }
 }

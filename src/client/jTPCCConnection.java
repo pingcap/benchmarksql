@@ -47,7 +47,7 @@ public class jTPCCConnection
 
     public PreparedStatement    stmtStockLevelSelectLow;
 
-    public PreparedStatement    stmtDeliveryBGSelectOldestNewOrder;
+	public PreparedStatement    stmtDeliveryBGSelectOldestNewOrder;
     public PreparedStatement    stmtDeliveryBGDeleteOldestNewOrder;
     public PreparedStatement    stmtDeliveryBGSelectOrder;
     public PreparedStatement    stmtDeliveryBGUpdateOrder;
@@ -245,7 +245,8 @@ public class jTPCCConnection
 		break;
 	}
 
-	// PreparedStatements for DELIVERY_BG
+
+		// PreparedStatements for DELIVERY_BG
     stmtDeliveryBGSelectOldestNewOrder = dbConn.prepareStatement(
         "SELECT no_o_id " +
         "    FROM bmsql_new_order " +
@@ -255,23 +256,40 @@ public class jTPCCConnection
         "    FOR UPDATE");
 	stmtDeliveryBGDeleteOldestNewOrder = dbConn.prepareStatement(
 		"DELETE FROM bmsql_new_order " +
-		"    WHERE no_w_id = ? AND no_d_id = ? AND no_o_id = ?");
+		"    WHERE (no_w_id,no_d_id,no_o_id) IN (" +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?))");
+
 	stmtDeliveryBGSelectOrder = dbConn.prepareStatement(
-		"SELECT o_c_id " +
+		"SELECT o_c_id, o_d_id" +
 		"    FROM bmsql_oorder " +
-		"    WHERE o_w_id = ? AND o_d_id = ? AND o_id = ?");
+		"    WHERE (o_w_id,o_d_id,o_id) IN (" +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?))");
+
 	stmtDeliveryBGUpdateOrder = dbConn.prepareStatement(
 		"UPDATE bmsql_oorder " +
 		"    SET o_carrier_id = ? " +
-		"    WHERE o_w_id = ? AND o_d_id = ? AND o_id = ?");
+		"    WHERE (o_w_id,o_d_id,o_id) IN (" +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?))");
+
 	stmtDeliveryBGSelectSumOLAmount = dbConn.prepareStatement(
-		"SELECT sum(ol_amount) AS sum_ol_amount " +
+		"SELECT sum(ol_amount) AS sum_ol_amount, ol_d_id" +
 		"    FROM bmsql_order_line " +
-		"    WHERE ol_w_id = ? AND ol_d_id = ? AND ol_o_id = ?");
+		"    WHERE (ol_w_id,ol_d_id,ol_o_id) IN (" +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)" +
+		") GROUP BY ol_d_id");
+
+
 	stmtDeliveryBGUpdateOrderLine = dbConn.prepareStatement(
 		"UPDATE bmsql_order_line " +
 		"    SET ol_delivery_d = ? " +
-		"    WHERE ol_w_id = ? AND ol_d_id = ? AND ol_o_id = ?");
+		"    WHERE (ol_w_id,ol_d_id,ol_o_id) IN (" +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
+		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?))");
+
 	stmtDeliveryBGUpdateCustomer = dbConn.prepareStatement(
 		"UPDATE bmsql_customer " +
 		"    SET c_balance = c_balance + ?, " +
