@@ -256,9 +256,7 @@ public class jTPCCConnection
         "    FOR UPDATE");
 	stmtDeliveryBGDeleteOldestNewOrder = dbConn.prepareStatement(
 		"DELETE FROM bmsql_new_order " +
-		"    WHERE (no_w_id,no_d_id,no_o_id) IN (" +
-		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)," +
-		"(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?))");
+		"    WHERE no_w_id = ? AND no_d_id = ? AND no_o_id = ?");
 
 	stmtDeliveryBGSelectOrder = dbConn.prepareStatement(
 		"SELECT o_c_id, o_d_id" +

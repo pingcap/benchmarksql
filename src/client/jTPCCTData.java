@@ -1598,7 +1598,7 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 			o_id = -1;
 
 			stmt1 = db.stmtDeliveryBGSelectOldestNewOrder;
-
+			stmt2 = db.stmtDeliveryBGDeleteOldestNewOrder;
 			/*
 			 * Try to find the oldest undelivered order for this
 			 * DISTRICT. There may not be one, which is a case
@@ -1620,6 +1620,25 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 				 * the order must be not selected by other termnial
 				 * as long as this SQL statement return it.
 				 */
+				stmt2.setInt(1, deliveryBG.w_id);
+				stmt2.setInt(2, d_id);
+				stmt2.setInt(3, o_id);
+				rc = stmt2.executeUpdate();
+				if (rc == 0)
+				{
+					/*
+					 * Failed to delete the NEW_ORDER row. This is not
+					 * an error since for concurrency reasons we did
+					 * not select FOR UPDATE above. It is possible that
+					 * another, concurrent DELIVERY_BG transaction just
+					 * deleted this row and is working on it now. We
+					 * simply got back and try to get the next one.
+					 * This logic only works in READ_COMMITTED isolation
+					 * level and will cause SQLExceptions in anything
+					 * higher than that.
+					 */
+					o_id = -1;
+				}
 			}
 
 			if (o_id < 0) {
@@ -1628,13 +1647,6 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 			}
 			deliveryBG.delivered_o_id[d_id - 1] = o_id;
 		}
-		stmt1 = db.stmtDeliveryBGDeleteOldestNewOrder;
-		for (d_id = 1; d_id <= 10; d_id++) {
-			stmt1.setInt(d_id * 3 - 2, deliveryBG.w_id);
-			stmt1.setInt(d_id * 3 - 1, d_id);
-			stmt1.setInt(d_id * 3, deliveryBG.delivered_o_id[d_id - 1]);
-		}
-		stmt1.executeUpdate();
 
 		/*
 		 * We found out oldest undelivered order for this DISTRICT
