@@ -88,7 +88,7 @@ create table bmsql_oorder (
   o_all_local  integer,
   o_entry_d    timestamp,
   constraint pk_oorder primary key (o_w_id, o_d_id, o_id),
-  constraint bmsql_oorder_idx1 unique key (o_w_id, o_d_id, o_carrier_id, o_id)
+  constraint bmsql_oorder_idx1 unique key (o_w_id, o_d_id, o_c_id, o_id)
 );
 
 create table bmsql_order_line (
