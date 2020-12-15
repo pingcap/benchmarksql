@@ -4,6 +4,12 @@ BENCHMARKSQL README
 CHANGE LOG:
 -----------
 
+Version 5.1 modifications by Nicolas MARTIN
+--------------------------------------
+ +  Add SSL support 
+ +  Add database metrics capture (just for postgresql from now, remark, you need to install python package jaydebeapi)
+ 
+
 Version 5.0 lussman & jannicash:
 --------------------------------------
   +  Upgrade to PostgreSQL 9.3 JDBC 4.1 version 1102 driver
