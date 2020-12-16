@@ -1,6 +1,7 @@
 db=postgres
 driver=org.postgresql.Driver
 conn=jdbc:postgresql://localhost:5432/postgres
+SSL=true
 user=benchmarksql
 password=PWbmsql
 
@@ -34,3 +35,5 @@ osCollectorScript=./misc/os_collector_linux.py
 osCollectorInterval=1
 //osCollectorSSHAddr=user@dbhost
 osCollectorDevices=net_eth0 blk_sda
+dbCollectorScript=./misc/db_collector_pg.py
+dbCollectorInterval=1
