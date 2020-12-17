@@ -1,0 +1,147 @@
+[
+    {
+      "Id": "cpu_pct_avg",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/RDS",
+          "MetricName": "CPUUtilization",
+          "Dimensions": [
+            {
+              "Name": "DBInstanceIdentifier",
+              "Value": "nmntestpgrds"
+            }
+          ]
+        },
+        "Period": 60,
+        "Stat": "Average",
+        "Unit": "Percent"
+      }
+    },
+    {
+      "Id": "cpu_pct_max",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/RDS",
+          "MetricName": "CPUUtilization",
+          "Dimensions": [
+            {
+              "Name": "DBInstanceIdentifier",
+              "Value": "nmntestpgrds"
+            }
+          ]
+        },
+        "Period": 60,
+        "Stat": "Maximum",
+        "Unit": "Percent"
+      }
+    },
+    {
+      "Id": "mem_avg",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/RDS",
+          "MetricName": "FreeableMemory",
+          "Dimensions": [
+            {
+              "Name": "DBInstanceIdentifier",
+              "Value": "nmntestpgrds"
+            }
+          ]
+        },
+        "Period": 60,
+        "Stat": "Average",
+        "Unit": "Bytes"
+      }
+    },
+    {
+      "Id": "mem_max",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/RDS",
+          "MetricName": "FreeableMemory",
+          "Dimensions": [
+            {
+              "Name": "DBInstanceIdentifier",
+              "Value": "nmntestpgrds"
+            }
+          ]
+        },
+        "Period": 60,
+        "Stat": "Maximum",
+        "Unit": "Bytes"
+      }
+    },
+    {
+      "Id": "riops_avg",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/RDS",
+          "MetricName": "ReadIOPS",
+          "Dimensions": [
+            {
+              "Name": "DBInstanceIdentifier",
+              "Value": "nmntestpgrds"
+            }
+          ]
+        },
+        "Period": 60,
+        "Stat": "Average",
+        "Unit": "Count/Second"
+      }
+    },
+    {
+      "Id": "riops_max",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/RDS",
+          "MetricName": "ReadIOPS",
+          "Dimensions": [
+            {
+              "Name": "DBInstanceIdentifier",
+              "Value": "nmntestpgrds"
+            }
+          ]
+        },
+        "Period": 60,
+        "Stat": "Maximum",
+        "Unit": "Count/Second"
+      }
+    },
+    {
+      "Id": "wiops_avg",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/RDS",
+          "MetricName": "WriteIOPS",
+          "Dimensions": [
+            {
+              "Name": "DBInstanceIdentifier",
+              "Value": "nmntestpgrds"
+            }
+          ]
+        },
+        "Period": 60,
+        "Stat": "Average",
+        "Unit": "Count/Second"
+      }
+    },
+    {
+      "Id": "wiops_max",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/RDS",
+          "MetricName": "WriteIOPS",
+          "Dimensions": [
+            {
+              "Name": "DBInstanceIdentifier",
+              "Value": "nmntestpgrds"
+            }
+          ]
+        },
+        "Period": 60,
+        "Stat": "Maximum",
+        "Unit": "Count/Second"
+      }
+    }
+]
+

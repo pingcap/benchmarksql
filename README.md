@@ -7,7 +7,17 @@ CHANGE LOG:
 Version 5.1 modifications by Nicolas MARTIN
 --------------------------------------
  +  Add SSL support 
+ +  Add AWS and Azure metrics extractor (based on benchmark run informations)
  +  Add database metrics capture (just for postgresql from now, remark, you need to install python package jaydebeapi)
+ 
+For reporting (and also computing values), need to install R with following packages : 
++  jsonlite
++  tidyverse
++  lubridate
++  ggplot2
++  hrbrthemes
++  viridis
++  htmlwidgets
  
 
 Version 5.0 lussman & jannicash:
