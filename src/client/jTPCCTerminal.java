@@ -279,12 +279,10 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable {
         }
     }
 
-
     private void error(String type) {
         log.error(terminalName + ", TERMINAL=" + terminalName + "  TYPE=" + type + "  COUNT=" + transactionCount);
         System.out.println(terminalName + ", TERMINAL=" + terminalName + "  TYPE=" + type + "  COUNT=" + transactionCount);
     }
-
 
     private void logException(Exception e) {
         StringWriter stringWriter = new StringWriter();
@@ -294,16 +292,13 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable {
         log.error(stringWriter.toString());
     }
 
-
     private void terminalMessage(String message) {
         log.trace(terminalName + ", " + message);
     }
 
-
     private void printMessage(String message) {
         log.trace(terminalName + ", " + message);
     }
-
 
     void transRollback() {
         try {
@@ -313,7 +308,6 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable {
         }
     }
 
-
     void transCommit() {
         try {
             conn.commit();
@@ -322,6 +316,4 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable {
             transRollback();
         }
     } // end transCommit()
-
-
 }

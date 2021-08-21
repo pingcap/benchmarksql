@@ -348,7 +348,6 @@ public class jTPCC implements jTPCCConfig {
                     throw new Exception();
                 }
 
-
                 if (Long.parseLong(iRunMins) != 0 && Integer.parseInt(iRunTxnsPerTerminal) == 0) {
                     try {
                         executionTimeMillis = Long.parseLong(iRunMins) * 60000;
@@ -479,7 +478,7 @@ public class jTPCC implements jTPCCConfig {
                     // Record run parameters in runInfo.csv
                     if (runInfoCSV != null) {
                         try {
-                            StringBuffer infoSB = new StringBuffer();
+                            StringBuilder infoSB = new StringBuilder();
                             Formatter infoFmt = new Formatter(infoSB);
                             infoFmt.format("%d,simple,%s,%s,%s,%s,%d,%d,%d,%d,1.0,1.0\n",
                                     runID, JTPCCVERSION, iDB,
@@ -497,12 +496,10 @@ public class jTPCC implements jTPCCConfig {
                         }
                     }
 
-                    synchronized (terminals) {
-                        printMessage("Starting all terminals...");
-                        transactionCount.add(1);
-                        for (int i = 0; i < terminals.length; i++)
-                            (new Thread(terminals[i])).start();
-                    }
+                    printMessage("Starting all terminals...");
+                    transactionCount.add(1);
+                    for (int i = 0; i < terminals.length; i++)
+                        (new Thread(terminals[i])).start();
                     printMessage("All terminals started executing " + sessionStart);
                 } catch (Exception e1) {
                     errorMessage("This session ended with errors!");
@@ -628,7 +625,6 @@ public class jTPCC implements jTPCCConfig {
         double tpmC = (6000000 * fastNewOrderCounter.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
         double tpmTotal = (6000000 * transactionCount.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
 
-        System.out.println("");
         log.info("Term-00, ");
         log.info("Term-00, ");
         log.info("Term-00, Measured tpmC (NewOrders) = " + tpmC);
@@ -670,7 +666,7 @@ public class jTPCC implements jTPCCConfig {
             statusLock.lock();
             long currTimeMillis = System.currentTimeMillis();
             if (currTimeMillis > sessionNextTimestamp) {
-                StringBuilder informativeText = new StringBuilder("");
+                StringBuilder informativeText = new StringBuilder();
                 Formatter fmt = new Formatter(informativeText);
                 double tpmC = (6000000 * fastNewOrderCounter.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
                 double tpmTotal = (6000000 * transactionCount.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
