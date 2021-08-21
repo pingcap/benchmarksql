@@ -625,8 +625,8 @@ public class jTPCC implements jTPCCConfig {
         long currTimeMillis = System.currentTimeMillis();
         long freeMem = Runtime.getRuntime().freeMemory() / (1024 * 1024);
         long totalMem = Runtime.getRuntime().totalMemory() / (1024 * 1024);
-        double tpmC = (6000000 * fastNewOrderCounter.intValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
-        double tpmTotal = (6000000 * transactionCount.intValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
+        double tpmC = (6000000 * fastNewOrderCounter.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
+        double tpmTotal = (6000000 * transactionCount.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
 
         System.out.println("");
         log.info("Term-00, ");
@@ -635,7 +635,7 @@ public class jTPCC implements jTPCCConfig {
         log.info("Term-00, Measured tpmTOTAL = " + tpmTotal);
         log.info("Term-00, Session Start     = " + sessionStart);
         log.info("Term-00, Session End       = " + sessionEnd);
-        log.info("Term-00, Transaction Count = " + (transactionCount.intValue() - 1));
+        log.info("Term-00, Transaction Count = " + (transactionCount.longValue() - 1));
         for (String key : costPerWorkerload.keySet()) {
             Long value = costPerWorkerload.get(key);
             log.info("executeTime[" + key + "]=" + value.toString());
@@ -672,17 +672,17 @@ public class jTPCC implements jTPCCConfig {
             if (currTimeMillis > sessionNextTimestamp) {
                 StringBuilder informativeText = new StringBuilder("");
                 Formatter fmt = new Formatter(informativeText);
-                double tpmC = (6000000 * fastNewOrderCounter.intValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
-                double tpmTotal = (6000000 * transactionCount.intValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
+                double tpmC = (6000000 * fastNewOrderCounter.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
+                double tpmTotal = (6000000 * transactionCount.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
 
                 sessionNextTimestamp += 1000;  /* update this every seconds */
 
                 fmt.format("Term-00, Running Average tpmTOTAL: %.2f", tpmTotal);
 
                 /* XXX What is the meaning of these numbers? */
-                recentTpmC = (fastNewOrderCounter.intValue() - sessionNextKounter) * 12;
-                recentTpmTotal = (transactionCount.intValue() - sessionNextKounter) * 12;
-                sessionNextKounter = fastNewOrderCounter.intValue();
+                recentTpmC = (fastNewOrderCounter.longValue() - sessionNextKounter) * 12;
+                recentTpmTotal = (transactionCount.longValue() - sessionNextKounter) * 12;
+                sessionNextKounter = fastNewOrderCounter.longValue();
                 fmt.format("    Current tpmTOTAL: %d", recentTpmTotal);
 
                 long freeMem = Runtime.getRuntime().freeMemory() / (1024 * 1024);
