@@ -57,29 +57,28 @@ public class jTPCCConnection {
     public PreparedStatement stmtDeliveryBGUpdateOrderLine;
     public PreparedStatement stmtDeliveryBGUpdateCustomer;
 
-    public jTPCCConnection(Connection dbConn, int dbType)
-            throws SQLException {
+    public jTPCCConnection(Connection dbConn, int dbType) throws SQLException {
         this.dbConn = dbConn;
         this.dbType = dbType;
         stmtNewOrderSelectStockBatch = new PreparedStatement[16];
-        String st = "SELECT s_i_id, s_w_id, s_quantity, s_data, " +
-                "       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
-                "       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
-                "       s_dist_09, s_dist_10 " +
-                "    FROM bmsql_stock " +
-                "    WHERE (s_w_id, s_i_id) in ((?,?)";
+        StringBuilder sqlSb = new StringBuilder("SELECT s_i_id, s_w_id, s_quantity, s_data, ");
+        sqlSb.append(" s_dist_01, s_dist_02, s_dist_03, s_dist_04, ");
+        sqlSb.append(" s_dist_05, s_dist_06, s_dist_07, s_dist_08, ");
+        sqlSb.append(" s_dist_09, s_dist_10 ");
+        sqlSb.append(" FROM bmsql_stock ");
+        sqlSb.append(" WHERE (s_w_id, s_i_id) in ((?,?)");
         for (int i = 1; i <= 15; i++) {
-            String stmtStr = st + ") FOR UPDATE";
+            String stmtStr = sqlSb + ") FOR UPDATE";
             stmtNewOrderSelectStockBatch[i] = dbConn.prepareStatement(stmtStr);
-            st += ",(?,?)";
+            sqlSb.append(",(?,?)");
         }
         stmtNewOrderSelectItemBatch = new PreparedStatement[16];
-        st = "SELECT i_id, i_price, i_name, i_data " +
-                "    FROM bmsql_item WHERE i_id in (?";
+        sqlSb = new StringBuilder("SELECT i_id, i_price, i_name, i_data ");
+        sqlSb.append(" FROM bmsql_item WHERE i_id in (?");
         for (int i = 1; i <= 15; i++) {
-            String stmtStr = st + ")";
+            String stmtStr = sqlSb + ")";
             stmtNewOrderSelectItemBatch[i] = dbConn.prepareStatement(stmtStr);
-            st += ",?";
+            sqlSb.append(",?");
         }
 
         // PreparedStataments for NEW_ORDER
@@ -244,7 +243,6 @@ public class jTPCCConnection {
                                 "    )");
                 break;
         }
-
 
         // PreparedStatements for DELIVERY_BG
         stmtDeliveryBGSelectOldestNewOrder = dbConn.prepareStatement(

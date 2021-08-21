@@ -18,7 +18,7 @@ public class LoadDataWorker implements Runnable {
     private Connection dbConn;
     private jTPCCRandom rnd;
 
-    private StringBuffer sb;
+    private StringBuilder sb;
     private Formatter fmt;
 
     private boolean writeCSV = false;
@@ -35,25 +35,25 @@ public class LoadDataWorker implements Runnable {
     private PreparedStatement stmtOrderLine = null;
     private PreparedStatement stmtNewOrder = null;
 
-    private StringBuffer sbConfig = null;
+    private StringBuilder sbConfig = null;
     private Formatter fmtConfig = null;
-    private StringBuffer sbItem = null;
+    private StringBuilder sbItem = null;
     private Formatter fmtItem = null;
-    private StringBuffer sbWarehouse = null;
+    private StringBuilder sbWarehouse = null;
     private Formatter fmtWarehouse = null;
-    private StringBuffer sbDistrict = null;
+    private StringBuilder sbDistrict = null;
     private Formatter fmtDistrict = null;
-    private StringBuffer sbStock = null;
+    private StringBuilder sbStock = null;
     private Formatter fmtStock = null;
-    private StringBuffer sbCustomer = null;
+    private StringBuilder sbCustomer = null;
     private Formatter fmtCustomer = null;
-    private StringBuffer sbHistory = null;
+    private StringBuilder sbHistory = null;
     private Formatter fmtHistory = null;
-    private StringBuffer sbOrder = null;
+    private StringBuilder sbOrder = null;
     private Formatter fmtOrder = null;
-    private StringBuffer sbOrderLine = null;
+    private StringBuilder sbOrderLine = null;
     private Formatter fmtOrderLine = null;
-    private StringBuffer sbNewOrder = null;
+    private StringBuilder sbNewOrder = null;
     private Formatter fmtNewOrder = null;
 
     LoadDataWorker(int worker, String csvNull, jTPCCRandom rnd) {
@@ -61,29 +61,29 @@ public class LoadDataWorker implements Runnable {
         this.csvNull = csvNull;
         this.rnd = rnd;
 
-        this.sb = new StringBuffer();
+        this.sb = new StringBuilder();
         this.fmt = new Formatter(sb);
         this.writeCSV = true;
 
-        this.sbConfig = new StringBuffer();
+        this.sbConfig = new StringBuilder();
         this.fmtConfig = new Formatter(sbConfig);
-        this.sbItem = new StringBuffer();
+        this.sbItem = new StringBuilder();
         this.fmtItem = new Formatter(sbItem);
-        this.sbWarehouse = new StringBuffer();
+        this.sbWarehouse = new StringBuilder();
         this.fmtWarehouse = new Formatter(sbWarehouse);
-        this.sbDistrict = new StringBuffer();
+        this.sbDistrict = new StringBuilder();
         this.fmtDistrict = new Formatter(sbDistrict);
-        this.sbStock = new StringBuffer();
+        this.sbStock = new StringBuilder();
         this.fmtStock = new Formatter(sbStock);
-        this.sbCustomer = new StringBuffer();
+        this.sbCustomer = new StringBuilder();
         this.fmtCustomer = new Formatter(sbCustomer);
-        this.sbHistory = new StringBuffer();
+        this.sbHistory = new StringBuilder();
         this.fmtHistory = new Formatter(sbHistory);
-        this.sbOrder = new StringBuffer();
+        this.sbOrder = new StringBuilder();
         this.fmtOrder = new Formatter(sbOrder);
-        this.sbOrderLine = new StringBuffer();
+        this.sbOrderLine = new StringBuilder();
         this.fmtOrderLine = new Formatter(sbOrderLine);
-        this.sbNewOrder = new StringBuffer();
+        this.sbNewOrder = new StringBuilder();
         this.fmtNewOrder = new Formatter(sbNewOrder);
     }
 
@@ -93,7 +93,7 @@ public class LoadDataWorker implements Runnable {
         this.dbConn = dbConn;
         this.rnd = rnd;
 
-        this.sb = new StringBuffer();
+        this.sb = new StringBuilder();
         this.fmt = new Formatter(sb);
 
         stmtConfig = dbConn.prepareStatement(
@@ -270,9 +270,7 @@ public class LoadDataWorker implements Runnable {
                 int len = rnd.nextInt(26, 50);
                 int off = rnd.nextInt(0, len - 8);
 
-                iData = rnd.getAString(off, off) +
-                        "ORIGINAL" +
-                        rnd.getAString(len - off - 8, len - off - 8);
+                iData = rnd.getAString(off, off) + "ORIGINAL" + rnd.getAString(len - off - 8, len - off - 8);
             } else {
                 iData = rnd.getAString(26, 50);
             }

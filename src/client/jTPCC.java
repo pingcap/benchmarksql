@@ -159,7 +159,7 @@ public class jTPCC implements jTPCCConfig {
         }
 
         if (databaseDriverLoaded && resultDirectory != null) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             Formatter fmt = new Formatter(sb);
             Pattern p = Pattern.compile("%t");
             Calendar cal = Calendar.getInstance();
@@ -497,11 +497,12 @@ public class jTPCC implements jTPCCConfig {
                         }
                     }
 
-                    printMessage("Starting all terminals...");
-                    transactionCount.add(1);
-                    for (int i = 0; i < terminals.length; i++)
-                        (new Thread(terminals[i])).start();
-
+                    synchronized (terminals) {
+                        printMessage("Starting all terminals...");
+                        transactionCount.add(1);
+                        for (int i = 0; i < terminals.length; i++)
+                            (new Thread(terminals[i])).start();
+                    }
                     printMessage("All terminals started executing " + sessionStart);
                 } catch (Exception e1) {
                     errorMessage("This session ended with errors!");
@@ -541,8 +542,8 @@ public class jTPCC implements jTPCCConfig {
         try {
             terminalsLock.lock();
 
-            terminalsStarted.decrement();
             boolean found = false;
+            terminalsStarted.decrement();
             for (int i = 0; i < terminals.length && !found; i++) {
                 if (terminals[i] == terminal) {
                     terminals[i] = null;
@@ -551,7 +552,6 @@ public class jTPCC implements jTPCCConfig {
                     found = true;
                 }
             }
-
         } finally {
             terminalsLock.unlock();
         }
@@ -586,6 +586,7 @@ public class jTPCC implements jTPCCConfig {
                                                long executionTime, String comment, int newOrder) {
         try {
             transactionLock.lock();
+
             transactionCount.increment();
             fastNewOrderCounter.add(newOrder);
             Long counter = costPerWorkerload.get(transactionType);
@@ -604,7 +605,6 @@ public class jTPCC implements jTPCCConfig {
         }
 
         updateStatusLine();
-
     }
 
     public jTPCCRandom getRnd() {
@@ -614,8 +614,7 @@ public class jTPCC implements jTPCCConfig {
     public void resultAppend(jTPCCTData term) {
         if (resultCSV != null) {
             try {
-                resultCSV.write(runID + "," +
-                        term.resultLine(sessionStartTimestamp));
+                resultCSV.write(runID + "," + term.resultLine(sessionStartTimestamp));
             } catch (IOException e) {
                 log.error("Term-00, " + e.getMessage());
             }
@@ -667,14 +666,12 @@ public class jTPCC implements jTPCCConfig {
     private Lock statusLock = new ReentrantLock();
 
     private void updateStatusLine() {
-        long currTimeMillis = System.currentTimeMillis();
-
-        StringBuilder informativeText = new StringBuilder("");
-        Formatter fmt = new Formatter(informativeText);
         try {
             statusLock.lock();
-
+            long currTimeMillis = System.currentTimeMillis();
             if (currTimeMillis > sessionNextTimestamp) {
+                StringBuilder informativeText = new StringBuilder("");
+                Formatter fmt = new Formatter(informativeText);
                 double tpmC = (6000000 * fastNewOrderCounter.intValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
                 double tpmTotal = (6000000 * transactionCount.intValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
 

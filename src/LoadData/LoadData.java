@@ -185,7 +185,7 @@ public class LoadData {
         }
     } // End of main()
 
-    public static void configAppend(StringBuffer buf) throws IOException {
+    public static void configAppend(StringBuilder buf) throws IOException {
         try {
             configCSVLock.lock();
             configCSV.write(buf.toString());
@@ -195,7 +195,7 @@ public class LoadData {
         }
     }
 
-    public static void itemAppend(StringBuffer buf) throws IOException {
+    public static void itemAppend(StringBuilder buf) throws IOException {
         try {
             itemCSVLock.lock();
             itemCSV.write(buf.toString());
@@ -205,7 +205,7 @@ public class LoadData {
         }
     }
 
-    public static void warehouseAppend(StringBuffer buf) throws IOException {
+    public static void warehouseAppend(StringBuilder buf) throws IOException {
         try {
             warehouseCSVLock.lock();
             warehouseCSV.write(buf.toString());
@@ -215,7 +215,7 @@ public class LoadData {
         }
     }
 
-    public static void districtAppend(StringBuffer buf) throws IOException {
+    public static void districtAppend(StringBuilder buf) throws IOException {
         try {
             districtCSVLock.lock();
             districtCSV.write(buf.toString());
@@ -225,7 +225,7 @@ public class LoadData {
         }
     }
 
-    public static void stockAppend(StringBuffer buf) throws IOException {
+    public static void stockAppend(StringBuilder buf) throws IOException {
         try {
             stockCSVLock.lock();
             stockCSV.write(buf.toString());
@@ -235,7 +235,7 @@ public class LoadData {
         }
     }
 
-    public static void customerAppend(StringBuffer buf) throws IOException {
+    public static void customerAppend(StringBuilder buf) throws IOException {
         try {
             customerCSVLock.lock();
             customerCSV.write(buf.toString());
@@ -245,7 +245,7 @@ public class LoadData {
         }
     }
 
-    public static void historyAppend(StringBuffer buf) throws IOException {
+    public static void historyAppend(StringBuilder buf) throws IOException {
         try {
             historyCSVLock.lock();
             historyCSV.write(buf.toString());
@@ -255,7 +255,7 @@ public class LoadData {
         }
     }
 
-    public static void orderAppend(StringBuffer buf) throws IOException {
+    public static void orderAppend(StringBuilder buf) throws IOException {
         try {
             orderCSVLock.lock();
             orderCSV.write(buf.toString());
@@ -265,7 +265,7 @@ public class LoadData {
         }
     }
 
-    public static void orderLineAppend(StringBuffer buf) throws IOException {
+    public static void orderLineAppend(StringBuilder buf) throws IOException {
         try {
             orderLineCSVLock.lock();
             orderLineCSV.write(buf.toString());
@@ -275,7 +275,7 @@ public class LoadData {
         }
     }
 
-    public static void newOrderAppend(StringBuffer buf) throws IOException {
+    public static void newOrderAppend(StringBuilder buf) throws IOException {
         try {
             newOrderCSVLock.lock();
             newOrderCSV.write(buf.toString());
@@ -307,7 +307,7 @@ public class LoadData {
         String strVal = null;
 
         for (int i = 0; i < argv.length - 1; i += 2) {
-            if (name.toLowerCase().equals(argv[i].toLowerCase())) {
+            if (name.equalsIgnoreCase(argv[i])) {
                 strVal = argv[i + 1];
                 break;
             }
@@ -329,7 +329,7 @@ public class LoadData {
         String strVal = null;
 
         for (int i = 0; i < argv.length - 1; i += 2) {
-            if (name.toLowerCase().equals(argv[i].toLowerCase())) {
+            if (name.equalsIgnoreCase(argv[i])) {
                 strVal = argv[i + 1];
                 break;
             }
