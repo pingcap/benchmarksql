@@ -16,6 +16,7 @@ source funcs.sh $1
 
 setCP || exit 1
 
-myOPTS="-Dprop=$1 -DrunID=${SEQ}"
+# options params: -Ddebug, default value: 0
+myOPTS="-Dprop=$1 -DrunID=${SEQ} -Dprocessor=1"
 
-java -cp "$myCP" $myOPTS jTPCC
+java -cp "$myCP" $myOPTS jTPCCRunner

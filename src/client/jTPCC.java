@@ -15,10 +15,7 @@ import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -60,6 +57,8 @@ public class jTPCC implements jTPCCConfig {
     private final Lock terminalsLock = new ReentrantLock();
     private final Lock transactionLock = new ReentrantLock();
 
+    private boolean hasBatch = false;
+
     public static void main(String args[]) {
         PropertyConfigurator.configure("log4j.properties");
         new jTPCC();
@@ -82,15 +81,12 @@ public class jTPCC implements jTPCCConfig {
             errorMessage("Term-00, could not load properties file");
         }
 
-        log.info("Term-00, ");
-        log.info("Term-00, +-------------------------------------------------------------+");
-        log.info("Term-00,      BenchmarkSQL v" + JTPCCVERSION);
-        log.info("Term-00, +-------------------------------------------------------------+");
-        log.info("Term-00,  (c) 2003, Raul Barbosa");
-        log.info("Term-00,  (c) 2004-2016, Denis Lussier");
-        log.info("Term-00,  (c) 2016, Jan Wieck");
-        log.info("Term-00, +-------------------------------------------------------------+");
-        log.info("Term-00, ");
+        if (Integer.parseInt(System.getProperty("batch")) == 1) {
+            hasBatch = true;
+        }
+        if (!hasBatch) {
+            jTPCCUtil.printTitle();
+        }
         String iDB = getProp(ini, "db");
         String iDriver = getProp(ini, "driver");
         String iConn = getProp(ini, "conn");
@@ -185,6 +181,7 @@ public class jTPCC implements jTPCCConfig {
                 fmt.format("%t" + parts[i].substring(0, 1), cal);
                 sb.append(parts[i].substring(1));
             }
+            sb.append("_").append(iRunID);
             resultDirName = sb.toString();
             File resultDir = new File(resultDirName);
             File resultDataDir = new File(resultDir, "data");
@@ -685,9 +682,9 @@ public class jTPCC implements jTPCCConfig {
                 long totalMem = Runtime.getRuntime().totalMemory() / (1024 * 1024);
                 fmt.format("    Memory Usage: %dMB / %dMB          ", (totalMem - freeMem), totalMem);
 
-                System.out.print(informativeText);
+                System.out.println(informativeText);
                 for (int count = 0; count < 1 + informativeText.length(); count++)
-                    System.out.print("\b");
+                    System.out.println("\b");
             }
         } finally {
             statusLock.unlock();
