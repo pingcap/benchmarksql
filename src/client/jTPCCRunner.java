@@ -8,11 +8,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class jTPCCRunner {
     private static Logger log = Logger.getLogger(jTPCC.class);
 
     private static CountDownLatch latch;
+    private static final Lock lock = new ReentrantLock();
 
     private static final AtomicReference<Double> tpmCSum = new AtomicReference<>(0D);
     private static final AtomicReference<Double> tpmTotalSum = new AtomicReference<>(0D);
@@ -68,7 +71,7 @@ public class jTPCCRunner {
                     if (finalDebug) {
                         System.out.println("[Process " + finalI + "] " + line);
                     }
-                    if (summary(line)) continue;
+                    if (summary(line) && !finalDebug) continue;
                     // Only the first process data is output
                     if (finalDebug) {
                         System.out.println("[Process " + finalI + "] " + line);
@@ -104,17 +107,27 @@ public class jTPCCRunner {
     private static boolean summary(String line) {
         if (line.contains("Measured tpmC (NewOrders)")) {
             // Term-00, Measured tpmC (NewOrders) = 12185.26
-            String[] lines = line.split("=");
-            if (lines.length == 2) {
-                tpmCSum.set(tpmCSum.get() + Double.parseDouble(lines[1].trim()));
+            try {
+                lock.lock();
+                String[] lines = line.split("=");
+                if (lines.length == 2) {
+                    tpmCSum.set(tpmCSum.get() + Double.parseDouble(lines[1].trim()));
+                }
+            } finally {
+                lock.unlock();
             }
             return true;
         }
         if (line.contains("Measured tpmTOTAL")) {
             // Term-00, Measured tpmTOTAL = 27073.62
-            String[] lines = line.split("=");
-            if (lines.length == 2) {
-                tpmTotalSum.set(tpmTotalSum.get() + Double.parseDouble(lines[1].trim()));
+            try {
+                lock.lock();
+                String[] lines = line.split("=");
+                if (lines.length == 2) {
+                    tpmTotalSum.set(tpmTotalSum.get() + Double.parseDouble(lines[1].trim()));
+                }
+            } finally {
+                lock.unlock();
             }
             return true;
         }
@@ -123,6 +136,7 @@ public class jTPCCRunner {
         if (line.contains("Session Start")) {
             // Term-00, Session Start     = 2021-08-24 21:54:42
             try {
+                lock.lock();
                 String[] lines = line.split("=");
                 if (lines.length == 2) {
                     Date currentDate = SDF.parse(lines[1].trim());
@@ -133,12 +147,15 @@ public class jTPCCRunner {
             } catch (ParseException e) {
                 System.out.println(e.getMessage());
                 return false;
+            } finally {
+                lock.unlock();
             }
             return true;
         }
         if (line.contains("Session End")) {
             // Term-00, Session End       = 2021-08-24 22:24:43
             try {
+                lock.lock();
                 String[] lines = line.split("=");
                 if (lines.length == 2) {
                     Date currentDate = SDF.parse(lines[1].trim());
@@ -150,6 +167,8 @@ public class jTPCCRunner {
             } catch (ParseException e) {
                 System.out.println(e.getMessage());
                 return false;
+            } finally {
+                lock.unlock();
             }
             return true;
         }
@@ -157,7 +176,7 @@ public class jTPCCRunner {
             // Term-00, Transaction Count = 812757
             String[] lines = line.split("=");
             if (lines.length == 2) {
-                long l = tranCountSum.addAndGet(Long.parseLong(lines[1].trim()));
+                tranCountSum.addAndGet(Long.parseLong(lines[1].trim()));
             }
             return true;
         }
@@ -167,15 +186,20 @@ public class jTPCCRunner {
             // executeTime[Delivery]=22537610
             // executeTime[Stock-Level]=929640
             // executeTime[New-Order]=7197477
-            String[] lines = line.split(" : ");
-            if (lines.length == 2) {
-                String execTimeStr = lines[1].trim();
-                String[] execTimeEntryStr = execTimeStr.split("=");
-                if (execTimeEntryStr.length == 2) {
-                    LongAdder execTimeVal = executeTimeMap.computeIfAbsent(execTimeEntryStr[0].trim(),
-                            (x) -> new LongAdder());
-                    execTimeVal.add(Long.parseLong(execTimeEntryStr[1].trim()));
+            try {
+                lock.lock();
+                String[] lines = line.split(" : ");
+                if (lines.length == 2) {
+                    String execTimeStr = lines[1].trim();
+                    String[] execTimeEntryStr = execTimeStr.split("=");
+                    if (execTimeEntryStr.length == 2) {
+                        LongAdder execTimeVal = executeTimeMap.computeIfAbsent(execTimeEntryStr[0].trim(),
+                                (x) -> new LongAdder());
+                        execTimeVal.add(Long.parseLong(execTimeEntryStr[1].trim()));
+                    }
                 }
+            } finally {
+                lock.unlock();
             }
             return true;
         }
