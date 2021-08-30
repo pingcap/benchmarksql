@@ -51,7 +51,7 @@ public class jTPCCRunner {
             ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.redirectErrorStream(true);
             processBuilder.command("java", "-cp", ".:../lib/mysql/*:../lib/*:../dist/*",
-                    "-Dprop=" + prop, "-DrunID=" + runID, "-Dbatch=1", "jTPCC");
+                    "-Dprop=" + prop, "-DrunID=" + runID, "-Dprocessor=" + processor, "-Dbatch=1", "jTPCC");
             processBuilder.redirectErrorStream(true);
 
             Process process = processBuilder.start();

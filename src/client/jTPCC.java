@@ -15,7 +15,10 @@ import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.Properties;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -58,6 +61,7 @@ public class jTPCC implements jTPCCConfig {
     private final Lock transactionLock = new ReentrantLock();
 
     private boolean hasBatch = false;
+    private int processor = 1;
 
     public static void main(String args[]) {
         PropertyConfigurator.configure("log4j.properties");
@@ -81,7 +85,12 @@ public class jTPCC implements jTPCCConfig {
             errorMessage("Term-00, could not load properties file");
         }
 
-        if (Integer.parseInt(System.getProperty("batch")) == 1) {
+        String processorStr = System.getProperty("processor");
+        if (null != processorStr) {
+            processor = Integer.parseInt(processorStr);
+        }
+        String batch = System.getProperty("batch");
+        if (null != batch && Integer.parseInt(batch) == 1) {
             hasBatch = true;
         }
         if (!hasBatch) {
@@ -136,7 +145,7 @@ public class jTPCC implements jTPCCConfig {
         }
 
         if (Integer.parseInt(limPerMin) != 0) {
-            limPerMin_Terminal = Integer.parseInt(limPerMin) / Integer.parseInt(iTerminals);
+            limPerMin_Terminal = Integer.parseInt(limPerMin) / Integer.parseInt(iTerminals) / processor;
         } else {
             limPerMin_Terminal = -1;
         }
@@ -337,7 +346,7 @@ public class jTPCC implements jTPCCConfig {
                 }
 
                 try {
-                    numTerminals = Integer.parseInt(iTerminals);
+                    numTerminals = Integer.parseInt(iTerminals) / processor;
                     if (numTerminals <= 0 || numTerminals > 10 * numWarehouses)
                         throw new NumberFormatException();
                 } catch (NumberFormatException e1) {
