@@ -5,7 +5,7 @@ if [ $# -lt 1 ] ; then
     exit 2
 fi
 
-source funcs.sh $1
+source ./funcs.sh $1
 shift
 
 setCP || exit 1
