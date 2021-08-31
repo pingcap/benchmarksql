@@ -92,7 +92,6 @@ public class jTPCCRunner {
                         } else {
                             if (finalI == 0) {
                                 if (line.contains("Term-00,\t")) {
-                                    System.out.println("------" + line);
                                     // 17:06:48,261 [Thread-297] INFO   jTPCC : Term-00,
                                     String lineRight = line.substring(line.indexOf("[") + 1);
                                     threadName.set(lineRight.substring(0, lineRight.indexOf("]")));
