@@ -99,9 +99,13 @@ public class jTPCCRunner {
     }
 
     private static void printSummary() {
+        log.info("Term-00, ");
+        log.info("Term-00, ");
+        if (tpmCSum.get() <= 0 || tpmTotalSum.get() <= 0) {
+            log.info("Term-00, Interrupt exit.");
+            return;
+        }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        log.info("Term-00, ");
-        log.info("Term-00, ");
         log.info("Term-00, Measured tpmC (NewOrders) = " + tpmCSum.get());
         log.info("Term-00, Measured tpmTOTAL = " + tpmTotalSum.get());
         log.info("Term-00, Session Start     = " + sdf.format(sessionStart.get()));
