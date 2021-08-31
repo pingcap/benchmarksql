@@ -557,8 +557,14 @@ public class jTPCCTData {
                 db.stmtNewOrderInsertOrderLine.clearBatch();
                 db.rollback();
             } catch (SQLException se2) {
-                throw new Exception("Unexpected SQLException on rollback: " +
-                        se2.getMessage());
+                String sqlState = se2.getSQLState();
+                if ("08S01".equals(sqlState) || "40001".equals(sqlState)) {
+                    log.warn("No operations allowed after statement closed. sql state: " + sqlState);
+                    return;
+                } else {
+                    throw new Exception("Unexpected SQLException on rollback: " +
+                            se2.getMessage());
+                }
             }
             throw e;
         }
