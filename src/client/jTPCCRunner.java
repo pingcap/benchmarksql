@@ -1,5 +1,3 @@
-import org.apache.log4j.Logger;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -12,8 +10,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class jTPCCRunner {
-    private static Logger log = Logger.getLogger(jTPCC.class);
-
     private static CountDownLatch latch;
     private static final Lock lock = new ReentrantLock();
 
@@ -23,6 +19,9 @@ public class jTPCCRunner {
     private static final AtomicReference<Date> sessionEnd = new AtomicReference<>(new Date());
     private static final AtomicLong tranCountSum = new AtomicLong(0L);
     private static final Map<String, LongAdder> executeTimeMap = new ConcurrentHashMap<>();
+
+    private static final AtomicReference<String> threadName = new AtomicReference<>("");
+    private static final SimpleDateFormat logDateSDF = new SimpleDateFormat("HH:mm:ss,SSS");
 
     public static void main(String[] args) throws Exception {
         String prop = System.getProperty("prop");
@@ -44,7 +43,20 @@ public class jTPCCRunner {
         int runID = Integer.parseInt(runIDStr);
         List<Process> processList = new ArrayList<>();
 
-        jTPCCUtil.printTitle();
+        System.out.printf("%s [main] INFO   jTPCC : Term-00,%n", logDateSDF.format(new Date()));
+        System.out.printf("%s [main] INFO   jTPCC : Term-00, +-------------------------------------------------------------+%n",
+                logDateSDF.format(new Date()));
+        System.out.printf("%s [main] INFO   jTPCC : Term-00,      BenchmarkSQL v%s%n",
+                logDateSDF.format(new Date()), jTPCCConfig.JTPCCVERSION);
+        System.out.printf("%s [main] INFO   jTPCC : Term-00, +-------------------------------------------------------------+%n",
+                logDateSDF.format(new Date()));
+        System.out.printf("%s [main] INFO   jTPCC : Term-00,  (c) 2003, Raul Barbosa%n", logDateSDF.format(new Date()));
+        System.out.printf("%s [main] INFO   jTPCC : Term-00,  (c) 2004-2016, Denis Lussier%n", logDateSDF.format(new Date()));
+        System.out.printf("%s [main] INFO   jTPCC : Term-00,  (c) 2016, Jan Wieck%n", logDateSDF.format(new Date()));
+        System.out.printf("%s [main] INFO   jTPCC : Term-00, +-------------------------------------------------------------+%n",
+                logDateSDF.format(new Date()));
+        System.out.printf("%s [main] INFO   jTPCC : Term-00,%n", logDateSDF.format(new Date()));
+
         for (int i = 0; i < processor; i++) {
             runID++;
 //            System.out.println("&&&&&&& runID: " + runID);
@@ -79,6 +91,12 @@ public class jTPCCRunner {
                             System.out.println("[Process " + finalI + "] " + line);
                         } else {
                             if (finalI == 0) {
+                                if (line.contains("Term-00,\t")) {
+                                    System.out.println("------" + line);
+                                    // 17:06:48,261 [Thread-297] INFO   jTPCC : Term-00,
+                                    String lineRight = line.substring(line.indexOf("[") + 1);
+                                    threadName.set(lineRight.substring(0, lineRight.indexOf("]")));
+                                }
                                 System.out.println(line);
                             }
                         }
@@ -99,21 +117,27 @@ public class jTPCCRunner {
     }
 
     private static void printSummary() {
-        log.info("Term-00, ");
-        log.info("Term-00, ");
-        if (tpmCSum.get() <= 0 || tpmTotalSum.get() <= 0) {
-            log.info("Term-00, Interrupt exit.");
+        if (tpmCSum.get() <= 0 || tpmTotalSum.get() <= 0 || "".equals(threadName.get())) {
+            System.out.println("Interrupt exit...");
             return;
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        log.info("Term-00, Measured tpmC (NewOrders) = " + tpmCSum.get());
-        log.info("Term-00, Measured tpmTOTAL = " + tpmTotalSum.get());
-        log.info("Term-00, Session Start     = " + sdf.format(sessionStart.get()));
-        log.info("Term-00, Session End       = " + sdf.format(sessionEnd.get()));
-        log.info("Term-00, Transaction Count = " + (tranCountSum.longValue() - 1));
+        System.out.printf("%s [%s] INFO   jTPCC : Term-00, Measured tpmC (NewOrders) = %s%n",
+                logDateSDF.format(new Date()), threadName.get(), tpmCSum.get());
+        System.out.printf("%s [%s] INFO   jTPCC : Term-00, Measured tpmTOTAL = %s%n",
+                logDateSDF.format(new Date()), threadName.get(), tpmTotalSum.get());
+
+        SimpleDateFormat sessionDateSDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.printf("%s [%s] INFO   jTPCC : Term-00, Session Start     = %s%n",
+                logDateSDF.format(new Date()), threadName.get(), sessionDateSDF.format(sessionStart.get()));
+        System.out.printf("%s [%s] INFO   jTPCC : Term-00, Session End       = %s%n",
+                logDateSDF.format(new Date()), threadName.get(), sessionDateSDF.format(sessionEnd.get()));
+        System.out.printf("%s [%s] INFO   jTPCC : Term-00, Transaction Count = %s%n",
+                logDateSDF.format(new Date()), threadName.get(), (tranCountSum.longValue() - 1));
+
         for (String key : executeTimeMap.keySet()) {
             long value = executeTimeMap.get(key).longValue();
-            log.info(key + "=" + value);
+            System.out.printf("%s [%s] INFO   jTPCC : %s=%s%n",
+                    logDateSDF.format(new Date()), threadName.get(), key, value);
         }
     }
 

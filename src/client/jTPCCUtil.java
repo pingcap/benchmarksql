@@ -9,8 +9,6 @@
  */
 
 
-import org.apache.log4j.Logger;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -18,7 +16,6 @@ import java.sql.ResultSet;
 import java.util.Properties;
 
 public class jTPCCUtil implements jTPCCConfig {
-    private static Logger log = Logger.getLogger(jTPCC.class);
     private static Connection dbConn = null;
     private static PreparedStatement stmtGetConfig = null;
 
@@ -35,18 +32,6 @@ public class jTPCCUtil implements jTPCCConfig {
         return (outPropertyValue);
 
     } // end getSysProp
-
-    public static void printTitle() {
-        log.info("Term-00, ");
-        log.info("Term-00, +-------------------------------------------------------------+");
-        log.info("Term-00,      BenchmarkSQL v" + JTPCCVERSION);
-        log.info("Term-00, +-------------------------------------------------------------+");
-        log.info("Term-00,  (c) 2003, Raul Barbosa");
-        log.info("Term-00,  (c) 2004-2016, Denis Lussier");
-        log.info("Term-00,  (c) 2016, Jan Wieck");
-        log.info("Term-00, +-------------------------------------------------------------+");
-        log.info("Term-00, ");
-    }
 
     public static String randomStr(long strLen) {
 

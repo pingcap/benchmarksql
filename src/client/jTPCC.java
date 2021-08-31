@@ -94,7 +94,15 @@ public class jTPCC implements jTPCCConfig {
             hasBatch = true;
         }
         if (!hasBatch) {
-            jTPCCUtil.printTitle();
+            log.info("Term-00, ");
+            log.info("Term-00, +-------------------------------------------------------------+");
+            log.info("Term-00,      BenchmarkSQL v" + JTPCCVERSION);
+            log.info("Term-00, +-------------------------------------------------------------+");
+            log.info("Term-00,  (c) 2003, Raul Barbosa");
+            log.info("Term-00,  (c) 2004-2016, Denis Lussier");
+            log.info("Term-00,  (c) 2016, Jan Wieck");
+            log.info("Term-00, +-------------------------------------------------------------+");
+            log.info("Term-00, ");
         }
         String iDB = getProp(ini, "db");
         String iDriver = getProp(ini, "driver");
@@ -631,8 +639,8 @@ public class jTPCC implements jTPCCConfig {
         double tpmC = (6000000 * fastNewOrderCounter.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
         double tpmTotal = (6000000 * transactionCount.longValue() / (currTimeMillis - sessionStartTimestamp)) / 100.0;
 
-        log.info("Term-00, ");
-        log.info("Term-00, ");
+        log.info("Term-00,\t");
+        log.info("Term-00,\t");
         log.info("Term-00, Measured tpmC (NewOrders) = " + tpmC);
         log.info("Term-00, Measured tpmTOTAL = " + tpmTotal);
         log.info("Term-00, Session Start     = " + sessionStart);
