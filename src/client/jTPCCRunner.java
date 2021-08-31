@@ -62,26 +62,35 @@ public class jTPCCRunner {
             int finalI = i;
             boolean finalDebug = debug;
             new Thread(() -> {
-                Scanner scanner = new Scanner(processList.get(finalI).getInputStream());
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    if (line.trim().isEmpty()) {
-                        continue;
-                    }
-                    if (finalDebug) {
-                        System.out.println("[Process " + finalI + "] " + line);
-                    }
-                    if (summary(line) && !finalDebug) continue;
-                    // Only the first process data is output
-                    if (finalDebug) {
-                        System.out.println("[Process " + finalI + "] " + line);
-                    } else {
-                        if (finalI == 0) {
-                            System.out.println(line);
+                try {
+                    Process process = processList.get(finalI);
+                    Scanner scanner = new Scanner(process.getInputStream());
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
+                        if (line.trim().isEmpty()) {
+                            continue;
+                        }
+                        if (finalDebug) {
+                            System.out.println("[Process " + finalI + "] " + line);
+                        }
+                        if (summary(line) && !finalDebug) continue;
+                        // Only the first process data is output
+                        if (finalDebug) {
+                            System.out.println("[Process " + finalI + "] " + line);
+                        } else {
+                            if (finalI == 0) {
+                                System.out.println(line);
+                            }
                         }
                     }
+                    if (finalDebug) {
+                        if (!process.isAlive()) {
+                            System.out.println("[Process " + finalI + "] exit value: " + process.exitValue());
+                        }
+                    }
+                } finally {
+                    latch.countDown();
                 }
-                latch.countDown();
             }).start();
         }
         latch.await();

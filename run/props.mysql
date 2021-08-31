@@ -7,7 +7,7 @@ password=
 warehouses=10
 loadWorkers=4
 
-terminals=1
+terminals=100
 //To run specified transactions per terminal- runMins must equal zero
 runTxnsPerTerminal=0
 //To run for specified minutes- runTxnsPerTerminal must equal zero

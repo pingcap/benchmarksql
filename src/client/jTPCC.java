@@ -348,7 +348,7 @@ public class jTPCC implements jTPCCConfig {
                 try {
                     numTerminals = Integer.parseInt(iTerminals) / processor;
                     if (numTerminals <= 0 || numTerminals > 10 * numWarehouses)
-                        throw new NumberFormatException();
+                        throw new NumberFormatException("terminals/processor result must be gt 0");
                 } catch (NumberFormatException e1) {
                     errorMessage("Invalid number of terminals!");
                     throw new Exception();
