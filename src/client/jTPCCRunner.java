@@ -1,10 +1,7 @@
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
@@ -66,13 +63,19 @@ public class jTPCCRunner {
         for (int i = 0; i < processor; i++) {
             runID++;
 //            System.out.println("&&&&&&& runID: " + runID);
-            ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.redirectErrorStream(true);
-            processBuilder.command("java", "-cp", ".:../lib/mysql/*:../lib/*:../dist/*",
-                    "-Dprop=" + prop, "-DrunID=" + runID, "-Dprocessor=" + processor, "-Dbatch=1", "jTPCC");
-            processBuilder.redirectErrorStream(true);
 
-            Process process = processBuilder.start();
+//            ProcessBuilder processBuilder = new ProcessBuilder();
+//            processBuilder.redirectErrorStream(true);
+//            processBuilder.command("java", "-cp", ".:../lib/mysql/*:../lib/*:../dist/*",
+//                    "-Dprop=" + prop, "-DrunID=" + runID, "-Dprocessor=" + processor, "-Dbatch=1", "jTPCC");
+//            processBuilder.redirectErrorStream(true);
+//            Process process = processBuilder.start();
+
+            List<String> cmds = Arrays.asList("nohup", "java", "-cp", ".:../lib/mysql/*:../lib/*:../dist/*",
+                    "-Dprop=" + prop, "-DrunID=" + runID, "-Dprocessor=" + processor, "-Dbatch=1", "jTPCC", "&");
+            Process process = Runtime.getRuntime().exec(cmds.toArray(new String[0]));
+            process.waitFor(0, TimeUnit.SECONDS);
+            Thread.sleep(3000);
 
             processList.add(process);
             queues.add(new LinkedBlockingQueue<>());
