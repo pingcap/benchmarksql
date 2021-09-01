@@ -1,8 +1,10 @@
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
@@ -23,6 +25,8 @@ public class jTPCCRunner {
     private static final AtomicReference<String> threadName = new AtomicReference<>("");
     private static final SimpleDateFormat logDateSDF = new SimpleDateFormat("HH:mm:ss,SSS");
 
+    private static final String FINISH_FLAG = "==finished==";
+
     public static void main(String[] args) throws Exception {
         String prop = System.getProperty("prop");
         String runIDStr = System.getProperty("runID");
@@ -42,6 +46,8 @@ public class jTPCCRunner {
 
         int runID = Integer.parseInt(runIDStr);
         List<Process> processList = new ArrayList<>();
+
+        List<BlockingQueue<String>> queues = new ArrayList<>();
 
         System.out.printf("%s [main] INFO   jTPCC : Term-00,%n", logDateSDF.format(new Date()));
         System.out.printf("%s [main] INFO   jTPCC : Term-00, +-------------------------------------------------------------+%n",
@@ -67,18 +73,42 @@ public class jTPCCRunner {
             processBuilder.redirectErrorStream(true);
 
             Process process = processBuilder.start();
+
             processList.add(process);
+            queues.add(new LinkedBlockingQueue<>());
+        }
+
+        boolean finalDebug = debug;
+        for (int i = 0; i < processor; i++) {
+            int finalI = i;
+
+            new Thread(() -> {
+                Process process = processList.get(finalI);
+                BlockingQueue<String> queue = queues.get(finalI);
+                Scanner scanner = new Scanner(process.getInputStream());
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    queue.offer(line);
+                }
+                queue.offer(FINISH_FLAG);
+                if (finalDebug) {
+                    if (!process.isAlive()) {
+                        System.out.println("[Process " + finalI + "] exit value: " + process.exitValue());
+                    }
+                }
+            }).start();
         }
 
         for (int i = 0; i < processor; i++) {
             int finalI = i;
-            boolean finalDebug = debug;
             new Thread(() -> {
                 try {
-                    Process process = processList.get(finalI);
-                    Scanner scanner = new Scanner(process.getInputStream());
-                    while (scanner.hasNextLine()) {
-                        String line = scanner.nextLine();
+                    for (; ; ) {
+                        String line = queues.get(finalI).take();
+                        if (line.trim().equals(FINISH_FLAG)) {
+//                            System.out.println(FINISH_FLAG);
+                            break;
+                        }
                         if (line.trim().isEmpty()) {
                             continue;
                         }
@@ -100,11 +130,8 @@ public class jTPCCRunner {
                             }
                         }
                     }
-                    if (finalDebug) {
-                        if (!process.isAlive()) {
-                            System.out.println("[Process " + finalI + "] exit value: " + process.exitValue());
-                        }
-                    }
+                } catch (InterruptedException e) {
+                    System.out.printf("%s [main] INFO   jTPCC : %s%n", logDateSDF.format(new Date()), e.getMessage());
                 } finally {
                     latch.countDown();
                 }
