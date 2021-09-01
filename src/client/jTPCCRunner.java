@@ -129,7 +129,17 @@ public class jTPCCRunner {
                                     String lineRight = line.substring(line.indexOf("[") + 1);
                                     threadName.set(lineRight.substring(0, lineRight.indexOf("]")));
                                 }
-                                System.out.println(line);
+                                if (line.contains("Running Average tpmTOTAL")) {
+                                    // Term-00, Running Average tpmTOTAL: 60244.99    Current tpmTOTAL: 801540    Memory Usage: 49MB / 1596MB
+                                    String avgTpmTotalStr = line.substring(line.indexOf(":") + 1, line.indexOf("Current"));
+                                    double avgTpmTotal = Double.parseDouble(avgTpmTotalStr.trim()) * processor;
+                                    String crtTpmTotalStr = line.substring(line.indexOf("Current") + 17, line.indexOf("Memory"));
+                                    long crtTpmTotal = Long.parseLong(crtTpmTotalStr.trim()) * processor;
+                                    System.out.printf("Term-00, Running Average tpmTOTAL: %s    Current tpmTOTAL: %s    %s%n",
+                                            avgTpmTotal, crtTpmTotal, line.substring(line.indexOf("Memory")));
+                                } else {
+                                    System.out.println(line);
+                                }
                             }
                         }
                     }
