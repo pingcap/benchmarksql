@@ -11,7 +11,7 @@ fi
 # ----
 # Load common functions
 # ----
-source funcs.sh $1
+source ./funcs.sh $1
 
 # ----
 # Determine which SQL file to use.

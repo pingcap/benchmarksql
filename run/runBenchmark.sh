@@ -12,10 +12,11 @@ fi
 SEQ=$(expr $(cat "${SEQ_FILE}") + 1) || exit 1
 echo "${SEQ}" > "${SEQ_FILE}"
 
-source funcs.sh $1
+source ./funcs.sh $1
 
 setCP || exit 1
 
-myOPTS="-Dprop=$1 -DrunID=${SEQ}"
+# options params: -Ddebug, default value: 0
+myOPTS="-Dprop=$1 -DrunID=${SEQ} -Dprocessor=10 -Ddebug=0"
 
-java -cp "$myCP" $myOPTS jTPCC
+java -cp "$myCP" $myOPTS jTPCCRunner
