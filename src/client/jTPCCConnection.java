@@ -316,6 +316,8 @@ public class jTPCCConnection
     public void rollback()
 	throws SQLException
     {
+	if (!dbConn.isClosed()) {
 	dbConn.rollback();
+	}
     }
 }
