@@ -80,6 +80,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 	this.numWarehouses = numWarehouses;
 	this.newOrderCounter = 0;
 	this.limPerMin_Terminal = limPerMin_Terminal;
+
 	this.database = database;
 	this.dbProps = dbProp;
 
@@ -176,7 +177,14 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 			try {
 				Connection conn = DriverManager.getConnection(database, dbProps);
 				conn.setAutoCommit(false);
-				db = new jTPCCConnection(conn, dbType);
+				this.db = new jTPCCConnection(conn, dbType);
+				this.conn = conn;
+                this.stmt = conn.createStatement();
+				this.stmt.setMaxRows(200);
+				this.stmt.setFetchSize(100);
+
+				this.stmt1 = conn.createStatement();
+				this.stmt1.setMaxRows(1);
 			} catch (SQLException ex) {
 				throw new RuntimeException(ex);
 			}
