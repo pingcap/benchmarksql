@@ -307,9 +307,7 @@ public class jTPCCConnection
 	throws SQLException
     {
     	try {
-			if (dbConn != null && !dbConn.isClosed()) {
-				dbConn.commit();
-			}
+			dbConn.commit();
 		} catch(SQLException e) {
     		throw new CommitException();
 		}
@@ -318,8 +316,6 @@ public class jTPCCConnection
     public void rollback()
 	throws SQLException
     {
-		if (dbConn != null && !dbConn.isClosed()) {
 			dbConn.rollback();
-		}
     }
 }

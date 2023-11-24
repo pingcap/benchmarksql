@@ -12,6 +12,7 @@ import java.io.*;
 import java.sql.*;
 import java.sql.Date;
 import java.util.*;
+import javax.naming.CommunicationException;
 import javax.swing.*;
 
 
@@ -45,12 +46,16 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
     jTPCCConnection     db = null;
     int                 dbType = 0;
 
+	private String database = "";
+	private Properties dbProps = null;
+
     public jTPCCTerminal
       (String terminalName, int terminalWarehouseID, int terminalDistrictID,
        Connection conn, int dbType,
        int numTransactions, boolean terminalWarehouseFixed,
        int paymentWeight, int orderStatusWeight,
-       int deliveryWeight, int stockLevelWeight, int numWarehouses, int limPerMin_Terminal, jTPCC parent) throws SQLException
+       int deliveryWeight, int stockLevelWeight, int numWarehouses, int limPerMin_Terminal, jTPCC parent,
+	   String database, Properties dbProp) throws SQLException
     {
 	this.terminalName = terminalName;
 	this.conn = conn;
@@ -75,6 +80,8 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 	this.numWarehouses = numWarehouses;
 	this.newOrderCounter = 0;
 	this.limPerMin_Terminal = limPerMin_Terminal;
+	this.database = database;
+	this.dbProps = dbProp;
 
 	this.db = new jTPCCConnection(conn, dbType);
 
@@ -164,6 +171,15 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		catch (CommitException e)
 		{
 			continue;
+		}
+		catch (SQLException e ){
+			try {
+				Connection conn = DriverManager.getConnection(database, dbProps);
+				conn.setAutoCommit(false);
+				db = new jTPCCConnection(conn, dbType);
+			} catch (SQLException ex) {
+				throw new RuntimeException(ex);
+			}
 		}
 		catch (Exception e)
 		{
