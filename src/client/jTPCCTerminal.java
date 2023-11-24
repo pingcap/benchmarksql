@@ -173,18 +173,19 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		{
 			continue;
 		}
-		catch (SQLException e ){
+		catch (SQLException | CommunicationException e ){
 			try {
-				Connection conn = DriverManager.getConnection(database, dbProps);
-				conn.setAutoCommit(false);
-				this.db = new jTPCCConnection(conn, dbType);
-				this.conn = conn;
-                this.stmt = conn.createStatement();
+				Connection c = DriverManager.getConnection(database, dbProps);
+				c.setAutoCommit(false);
+				this.conn = c;
+                this.stmt = c.createStatement();
 				this.stmt.setMaxRows(200);
 				this.stmt.setFetchSize(100);
 
-				this.stmt1 = conn.createStatement();
+				this.stmt1 = c.createStatement();
 				this.stmt1.setMaxRows(1);
+
+				this.db = new jTPCCConnection(c, dbType);
 			} catch (SQLException ex) {
 				throw new RuntimeException(ex);
 			}
