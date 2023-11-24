@@ -175,17 +175,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		}
 		catch (SQLException | CommunicationException e ){
 			try {
-				Connection c = DriverManager.getConnection(database, dbProps);
-				c.setAutoCommit(false);
-				this.conn = c;
-                this.stmt = c.createStatement();
-				this.stmt.setMaxRows(200);
-				this.stmt.setFetchSize(100);
-
-				this.stmt1 = c.createStatement();
-				this.stmt1.setMaxRows(1);
-
-				this.db = new jTPCCConnection(c, dbType);
+				retryConnect();
 			} catch (SQLException ex) {
 				throw new RuntimeException(ex);
 			}
@@ -390,6 +380,22 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 	    transRollback();
 	}
     } // end transCommit()
+
+
+	void retryConnect() throws SQLException {
+			Connection c = DriverManager.getConnection(this.database, this.dbProps);
+			c.setAutoCommit(false);
+			this.conn = c;
+			this.stmt = c.createStatement();
+			this.stmt.setMaxRows(200);
+			this.stmt.setFetchSize(100);
+
+			this.stmt1 = c.createStatement();
+			this.stmt1.setMaxRows(1);
+
+			this.db = new jTPCCConnection(c, dbType);
+	}
+
 
 
 
