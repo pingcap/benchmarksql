@@ -297,6 +297,11 @@ public class jTPCCConnection
 		"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?");
     }
 
+	public Connection getDbConn()
+	{
+		return this.dbConn;
+	}
+
     public jTPCCConnection(String connURL, Properties connProps, int dbType)
 	throws SQLException
     {
