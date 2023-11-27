@@ -419,7 +419,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable {
     public static Retryer<Boolean> connectRetryer() {
         return RetryerBuilder.<Boolean>newBuilder()
                 .retryIfExceptionOfType(Exception.class)
-                .withStopStrategy(StopStrategies.stopAfterAttempt(999))
+                .withStopStrategy(StopStrategies.stopAfterDelay(1000 * 120, java.util.concurrent.TimeUnit.MILLISECONDS))
                 .build();
     }
 
