@@ -6,18 +6,25 @@
  * Copyright (C) 2016, Jan Wieck
  *
  */
-import org.apache.log4j.*;
 
-import java.io.*;
+import com.github.rholder.retry.RetryException;
+import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.RetryerBuilder;
+import com.github.rholder.retry.StopStrategies;
+import org.apache.log4j.Logger;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.*;
-import java.sql.Date;
-import java.util.*;
-import javax.swing.*;
+import java.util.Properties;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 
-public class jTPCCTerminal implements jTPCCConfig, Runnable
-{
+public class jTPCCTerminal implements jTPCCConfig, Runnable {
     private static org.apache.log4j.Logger log = Logger.getLogger(jTPCCTerminal.class);
+
+    static Retryer<Boolean> connectRetryer = connectRetryer();
 
     private String terminalName;
     private Connection conn = null;
@@ -45,12 +52,16 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
     jTPCCConnection     db = null;
     int                 dbType = 0;
 
+	private String database = "";
+	private Properties dbProps = null;
+
     public jTPCCTerminal
       (String terminalName, int terminalWarehouseID, int terminalDistrictID,
        Connection conn, int dbType,
        int numTransactions, boolean terminalWarehouseFixed,
        int paymentWeight, int orderStatusWeight,
-       int deliveryWeight, int stockLevelWeight, int numWarehouses, int limPerMin_Terminal, jTPCC parent) throws SQLException
+       int deliveryWeight, int stockLevelWeight, int numWarehouses, int limPerMin_Terminal, jTPCC parent,
+	   String database, Properties dbProp) throws SQLException
     {
 	this.terminalName = terminalName;
 	this.conn = conn;
@@ -75,6 +86,9 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 	this.numWarehouses = numWarehouses;
 	this.newOrderCounter = 0;
 	this.limPerMin_Terminal = limPerMin_Terminal;
+
+	this.database = database;
+	this.dbProps = dbProp;
 
 	this.db = new jTPCCConnection(conn, dbType);
 
@@ -167,9 +181,12 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		}
 		catch (Exception e)
 		{
-		    log.fatal(e.getMessage());
-		    e.printStackTrace();
-		    System.exit(4);
+            try {
+                Callable<Boolean> retryConnect = () -> retryConnect();
+                connectRetryer.call(retryConnect);
+            } catch (ExecutionException | RetryException ex) {
+                throw new RuntimeException(ex);
+            }
 		}
 		transactionTypeName = "Payment";
 	    }
@@ -193,9 +210,12 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		}
 		catch (Exception e)
 		{
-		    log.fatal(e.getMessage());
-		    e.printStackTrace();
-		    System.exit(4);
+            try {
+                Callable<Boolean> retryConnect = () -> retryConnect();
+                connectRetryer.call(retryConnect);
+            } catch (ExecutionException | RetryException ex) {
+                throw new RuntimeException(ex);
+            }
 		}
 		transactionTypeName = "Stock-Level";
 	    }
@@ -219,9 +239,12 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		}
 		catch (Exception e)
 		{
-		    log.fatal(e.getMessage());
-		    e.printStackTrace();
-		    System.exit(4);
+            try {
+                Callable<Boolean> retryConnect = () -> retryConnect();
+                connectRetryer.call(retryConnect);
+            } catch (ExecutionException | RetryException ex) {
+                throw new RuntimeException(ex);
+            }
 		}
 		transactionTypeName = "Order-Status";
 	    }
@@ -258,9 +281,12 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		}
 		catch (Exception e)
 		{
-		    log.fatal(e.getMessage());
-		    e.printStackTrace();
-		    System.exit(4);
+            try {
+                Callable<Boolean> retryConnect = () -> retryConnect();
+                connectRetryer.call(retryConnect);
+            } catch (ExecutionException | RetryException ex) {
+                throw new RuntimeException(ex);
+            }
 		}
 		transactionTypeName = "Delivery";
 	    }
@@ -284,9 +310,12 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		}
 		catch (Exception e)
 		{
-		    log.fatal(e.getMessage());
-		    e.printStackTrace();
-		    System.exit(4);
+            try {
+                Callable<Boolean> retryConnect = () -> retryConnect();
+                connectRetryer.call(retryConnect);
+            } catch (ExecutionException | RetryException ex) {
+                throw new RuntimeException(ex);
+            }
 		}
 		transactionTypeName = "New-Order";
 		newOrderCounter++;
@@ -366,6 +395,33 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 	}
     } // end transCommit()
 
+
+	boolean retryConnect() throws SQLException {
+        if (!db.getDbConn().isClosed()){
+            return true;
+        }
+            long startTime = System.currentTimeMillis();
+			Connection c = DriverManager.getConnection(this.database, this.dbProps);
+			c.setAutoCommit(false);
+			this.conn = c;
+			this.stmt = c.createStatement();
+			this.stmt.setMaxRows(200);
+			this.stmt.setFetchSize(100);
+
+			this.stmt1 = c.createStatement();
+			this.stmt1.setMaxRows(1);
+
+        this.db = new jTPCCConnection(c, dbType);
+        log.info("Reconnected to " + this.database + " in " + (System.currentTimeMillis() - startTime) + "ms");
+        return true;
+    }
+
+    public static Retryer<Boolean> connectRetryer() {
+        return RetryerBuilder.<Boolean>newBuilder()
+                .retryIfExceptionOfType(Exception.class)
+                .withStopStrategy(StopStrategies.stopAfterDelay(1000 * 120, java.util.concurrent.TimeUnit.MILLISECONDS))
+                .build();
+    }
 
 
 }

@@ -568,10 +568,6 @@ public class jTPCCTData
 	}
 	catch (SQLException se)
 	{
-	    log.error("Unexpected SQLException in NEW_ORDER");
-	    for (SQLException x = se; x != null; x = x.getNextException())
-		log.error(x.getMessage());
-	    se.printStackTrace();
 
 	    try
 	    {
@@ -935,10 +931,6 @@ public class jTPCCTData
 	}
 	catch (SQLException se)
 	{
-	    log.error("Unexpected SQLException in PAYMENT");
-	    for (SQLException x = se; x != null; x = x.getNextException())
-		log.error(x.getMessage());
-	    se.printStackTrace();
 
 	    try
 	    {
@@ -1232,10 +1224,6 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 	}
 	catch (SQLException se)
 	{
-	    log.error("Unexpected SQLException in ORDER_STATUS");
-	    for (SQLException x = se; x != null; x = x.getNextException())
-		log.error(x.getMessage());
-	    se.printStackTrace();
 
 	    try
 	    {
@@ -1388,10 +1376,6 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 	}
 	catch (SQLException se)
 	{
-	    log.error("Unexpected SQLException in STOCK_LEVEL");
-	    for (SQLException x = se; x != null; x = x.getNextException())
-		log.error(x.getMessage());
-	    se.printStackTrace();
 
 	    try
 	    {
@@ -1731,10 +1715,6 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 	}
 	catch (SQLException se)
 	{
-	    log.error("Unexpected SQLException in DELIVERY_BG");
-	    for (SQLException x = se; x != null; x = x.getNextException())
-		log.error(x.getMessage());
-	    se.printStackTrace();
 
 	    try
 	    {
