@@ -1,6 +1,12 @@
 The test process for MySQL/TiDB
 # Create the tables
 ./runSQL.sh props.mysql sql.mysql/tableCreates.sql
+
+# clustered table can get better performance, but load data time would slow than nonclustered table.
+# Create the clustered tables (except bmsql_order_line table)
+# ./runSQL.sh props.mysql sql.mysql/clusteredtableCreates.sql
+
+
 # Add the indices (TiDB prefers to import data after adding the indices)
 ./runSQL.sh props.mysql sql.mysql/indexCreates.sql
 # Import Data
