@@ -14,7 +14,7 @@ create table bmsql_warehouse (
   w_state     char(2),
   w_zip       char(9),
   constraint pk_warehouse primary key (w_id)
-) partition by hash(w_id) partitions 1024;
+) partition by hash(w_id) partitions 128;
 
 create table bmsql_district (
   d_w_id       integer       not null,
@@ -29,7 +29,7 @@ create table bmsql_district (
   d_state      char(2),
   d_zip        char(9),
   constraint pk_district primary key (d_w_id, d_id)
-) partition by hash(d_w_id) partitions 1024;
+) partition by hash(d_w_id) partitions 128;
 
 create table bmsql_customer (
   c_w_id         integer        not null,
@@ -55,12 +55,12 @@ create table bmsql_customer (
   c_data         varchar(500),
   constraint pk_customer primary key (c_w_id, c_d_id, c_id),
   key bmsql_customer_idx1 (c_w_id, c_d_id, c_last, c_first)
-);
+) partition by hash(c_w_id) partitions 128;
 
 -- create sequence bmsql_hist_id_seq;
 
 create table bmsql_history (
-  hist_id  integer not null auto_increment  primary key,
+  hist_id  integer,
   h_c_id   integer,
   h_c_d_id integer,
   h_c_w_id integer,
@@ -69,7 +69,7 @@ create table bmsql_history (
   h_date   timestamp,
   h_amount decimal(6,2),
   h_data   varchar(24)
-);
+) partition by hash(h_w_id) partitions 128;
 
 create table bmsql_new_order (
   no_w_id  integer   not null,
@@ -135,3 +135,4 @@ create table bmsql_stock (
   constraint pk_stock primary key (s_w_id, s_i_id)
 ) partition by hash(s_w_id) partitions 1024;
 
+create tablegroup whg1 tables bmsql_customer, bmsql_district, bmsql_history, bmsql_new_order, bmsql_order_line, bmsql_oorder, bmsql_stock, bmsql_warehouse;
