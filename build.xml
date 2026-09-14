@@ -28,13 +28,26 @@
 
   <target name="dist" depends="compile" >
     <mkdir dir="${dist}"/>
-    <jar jarfile="${dist}/BenchmarkSQL-5.0.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/BenchmarkSQL-5.0.jar" basedir="${build}" excludes="tests/**"/>
   </target>
 
   <target name="clean" description="clean up" >
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
     <delete dir="${logs}"/>
+  </target>
+
+  <target name="test" depends="compile">
+    <mkdir dir="${build}/tests"/>
+    <javac srcdir="tests" destdir="${build}/tests" includeantruntime="false" encoding="UTF-8">
+      <classpath><pathelement location="${build}"/><path refid="classpath"/></classpath>
+    </javac>
+    <java classname="TransactionMeasurementTest" fork="true" failonerror="true">
+      <classpath><pathelement location="${build}"/><pathelement location="${build}/tests"/><path refid="classpath"/></classpath>
+    </java>
+    <java classname="ConnectionMeasurementTest" fork="true" failonerror="true">
+      <classpath><pathelement location="${build}"/><pathelement location="${build}/tests"/><path refid="classpath"/></classpath>
+    </java>
   </target>
 
 </project>

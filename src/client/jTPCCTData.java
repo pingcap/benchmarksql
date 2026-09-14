@@ -89,6 +89,8 @@ public class jTPCCTData
 	if (transDue == 0)
 	    transDue = transStart;
 
+	try
+	{
 	switch (transType)
 	{
 	    case TT_NEW_ORDER:
@@ -119,7 +121,27 @@ public class jTPCCTData
 		throw new Exception("Unknown transType " + transType);
 	}
 
-	transEnd = System.currentTimeMillis();
+	}
+	catch (Exception e)
+	{
+	    if (transError == null)
+		transError = e.toString();
+	    throw e;
+	}
+	finally
+	{
+	    transEnd = System.currentTimeMillis();
+	}
+    }
+
+    public boolean isCommittedNewOrder()
+    {
+	return transType == TT_NEW_ORDER && transEnd != 0 && !transRbk && transError == null;
+    }
+
+    public boolean hasError()
+    {
+	return transError != null;
     }
 
     public void traceScreen(Logger log)
@@ -568,6 +590,7 @@ public class jTPCCTData
 	}
 	catch (SQLException se)
 	{
+	    transError = "SQLSTATE=" + se.getSQLState() + " code=" + se.getErrorCode() + ": " + se.getMessage();
 	    log.error("Unexpected SQLException in NEW_ORDER");
 	    for (SQLException x = se; x != null; x = x.getNextException())
 		log.error(x.getMessage());
@@ -935,6 +958,7 @@ public class jTPCCTData
 	}
 	catch (SQLException se)
 	{
+	    transError = "SQLSTATE=" + se.getSQLState() + " code=" + se.getErrorCode() + ": " + se.getMessage();
 	    log.error("Unexpected SQLException in PAYMENT");
 	    for (SQLException x = se; x != null; x = x.getNextException())
 		log.error(x.getMessage());
@@ -1232,6 +1256,7 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 	}
 	catch (SQLException se)
 	{
+	    transError = "SQLSTATE=" + se.getSQLState() + " code=" + se.getErrorCode() + ": " + se.getMessage();
 	    log.error("Unexpected SQLException in ORDER_STATUS");
 	    for (SQLException x = se; x != null; x = x.getNextException())
 		log.error(x.getMessage());
@@ -1388,6 +1413,7 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 	}
 	catch (SQLException se)
 	{
+	    transError = "SQLSTATE=" + se.getSQLState() + " code=" + se.getErrorCode() + ": " + se.getMessage();
 	    log.error("Unexpected SQLException in STOCK_LEVEL");
 	    for (SQLException x = se; x != null; x = x.getNextException())
 		log.error(x.getMessage());
@@ -1731,6 +1757,7 @@ log.trace("w_zip=" + payment.w_zip + " d_zip=" + payment.d_zip);
 	}
 	catch (SQLException se)
 	{
+	    transError = "SQLSTATE=" + se.getSQLState() + " code=" + se.getErrorCode() + ": " + se.getMessage();
 	    log.error("Unexpected SQLException in DELIVERY_BG");
 	    for (SQLException x = se; x != null; x = x.getNextException())
 		log.error(x.getMessage());

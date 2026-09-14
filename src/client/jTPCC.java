@@ -46,6 +46,7 @@ public class jTPCC implements jTPCCConfig
     private double tpmC;
     private jTPCCRandom rnd;
     private OSCollector osCollector = null;
+    private boolean measureConnections;
     private HashMap<String, Long> costPerWorkerload;
 
     public static void main(String args[])
@@ -112,6 +113,7 @@ public class jTPCC implements jTPCCConfig
 
 	log.info("Term-00, ");
 	String  resultDirectory     = getProp(ini, "resultDirectory");
+	measureConnections = Boolean.parseBoolean(ini.getProperty("measureConnections", "false"));
 	String	osCollectorScript   = getProp(ini, "osCollectorScript");
 
 	log.info("Term-00, ");
@@ -129,6 +131,8 @@ public class jTPCC implements jTPCCConfig
 	    log.error("unknown database type '" + iDB + "'");
 	    return;
 	}
+	if (measureConnections && (dbType != DB_MYSQL || resultDirectory == null))
+	    throw new IllegalArgumentException("measureConnections requires db=mysql and resultDirectory");
 
 	if(Integer.parseInt(limPerMin) !=0){
 	    limPerMin_Terminal = Integer.parseInt(limPerMin)/Integer.parseInt(iTerminals);
@@ -281,6 +285,10 @@ public class jTPCC implements jTPCCConfig
 		Properties dbProps = new Properties();
 		dbProps.setProperty("user", iUser);
 		dbProps.setProperty("password", iPassword);
+		if (measureConnections) {
+		    jTPCCSocketFactory.open(new File(resultDirName, "data/connections.csv"));
+		    dbProps.setProperty("socketFactory", jTPCCSocketFactory.class.getName());
+		}
 
 		/*
 		 * Fine tuning of database conneciton parameters if needed.
@@ -476,7 +484,9 @@ public class jTPCC implements jTPCCConfig
 			String terminalName = "Term-" + (i>=9 ? ""+(i+1) : "0"+(i+1));
 			Connection conn = null;
 			printMessage("Creating database connection for " + terminalName + "...");
+			long previousHandshakes = measureConnections ? jTPCCSocketFactory.count() : 0;
 			conn = DriverManager.getConnection(database, dbProps);
+			if (measureConnections) jTPCCSocketFactory.verify(conn, previousHandshakes);
 			conn.setAutoCommit(false);
 
 			jTPCCTerminal terminal = new jTPCCTerminal
@@ -512,6 +522,7 @@ public class jTPCC implements jTPCCConfig
 		    // Create Terminals, Start Transactions
 		    sessionStart = getCurrentTime();
 		    sessionStartTimestamp = System.currentTimeMillis();
+		    if (measureConnections) jTPCCSocketFactory.start(sessionStartTimestamp);
 		    sessionNextTimestamp = sessionStartTimestamp;
 		    if(sessionEndTargetTime != -1)
 			sessionEndTargetTime += sessionStartTimestamp;
@@ -546,7 +557,7 @@ public class jTPCC implements jTPCCConfig
 			printMessage("Starting all terminals...");
 			transactionCount = 1;
 			for(int i = 0; i < terminals.length; i++)
-			    (new Thread(terminals[i])).start();
+			    (new Thread(terminals[i], "benchmarksql-" + terminalNames[i])).start();
 
 		    }
 
@@ -612,6 +623,13 @@ public class jTPCC implements jTPCCConfig
 	{
 	    sessionEnd = getCurrentTime();
 	    sessionEndTimestamp = System.currentTimeMillis();
+	    if (measureConnections) {
+		try {
+		    jTPCCSocketFactory.finish(sessionEndTimestamp);
+		} catch (IOException e) {
+		    log.error("Connection measurement could not be completed", e);
+		}
+	    }
 	    sessionEndTargetTime = -1;
 	    printMessage("All terminals finished executing " + sessionEnd);
 	    endReport();
@@ -673,6 +691,8 @@ public class jTPCC implements jTPCCConfig
 	    {
 		resultCSV.write(runID + "," +
 				term.resultLine(sessionStartTimestamp));
+		// Fatal transaction paths call System.exit; retain their final row.
+		if (term.hasError()) resultCSV.flush();
 	    }
 	    catch (IOException e)
 	    {

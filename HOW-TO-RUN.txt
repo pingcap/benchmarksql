@@ -1,4 +1,19 @@
 
+Fixed-window measurements
+-------------------------
+
+Use resultDirectory to retain data/result.csv. Run warmup and measurement in one JVM: for a two-minute warmup and five-minute measurement set runMins=7 and runTxnsPerTerminal=0. Then run:
+
+    python3 run/summarizeRun.py <resultDirectory>/data --warmup-seconds 120 --measurement-seconds 300
+
+The summary selects transactions by completion time in [120s, 420s), counts successful NEW_ORDER completions for tpmC, and reports nearest-rank p95 for each transaction type. Errors and successful intentional rollbacks are separate outcomes. p95 includes all attempts in the window; it is never averaged across runs. DELIVERY_BG is reported separately and is excluded from the main transaction throughput to avoid counting Delivery twice.
+
+For MySQL Connector/J, set measureConnections=true to record authenticated physical sockets in data/connections.csv. This uses the driver's socket factory callback and adds no SQL to the transaction loop. Each terminal's initial connection is checked before starting. Terminal socket authentication after startup counts as a reconnect when its timestamp falls in the measurement window. Failed authentication, repeated authentication on the same socket, and background discovery sockets are excluded; authentication followed by a JDBC initialization failure is included. This metric counts physical connections, not successful JDBC session initialization. The URL must not override socketFactory.
+
+Missing or incomplete connection evidence yields reconnects=null and measurement_valid=false, never zero. A truncated transaction run is also invalid. The summary exits nonzero when its evidence is incomplete. Preserve the CSVs, run.properties, log, client JAR and driver versions for comparisons.
+
+Validation: ant test; python3 -m unittest discover -s tests -p 'test_*.py'. Rebuild with ant clean dist when replacing an existing JAR, so deleted classes cannot remain in the build directory.
+
 Instructions for running BenchmarkSQL on PostgreSQL
 ---------------------------------------------------
 

@@ -306,11 +306,7 @@ public class jTPCCConnection
     public void commit()
 	throws SQLException
     {
-    	try {
-			dbConn.commit();
-		} catch(SQLException e) {
-    		throw new CommitException();
-		}
+	dbConn.commit();
     }
 
     public void rollback()
