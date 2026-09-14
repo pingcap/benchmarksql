@@ -157,13 +157,8 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		{
 		    term.generatePayment(log, rnd, 0);
 		    term.traceScreen(log);
-		    term.execute(log, db);
-		    parent.resultAppend(term);
+		    executeTransaction(term);
 		    term.traceScreen(log);
-		}
-		catch (CommitException e)
-		{
-			continue;
 		}
 		catch (Exception e)
 		{
@@ -183,13 +178,8 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		{
 		    term.generateStockLevel(log, rnd, 0);
 		    term.traceScreen(log);
-		    term.execute(log, db);
-		    parent.resultAppend(term);
+		    executeTransaction(term);
 		    term.traceScreen(log);
-		}
-		catch (CommitException e)
-		{
-			continue;
 		}
 		catch (Exception e)
 		{
@@ -209,13 +199,8 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		{
 		    term.generateOrderStatus(log, rnd, 0);
 		    term.traceScreen(log);
-		    term.execute(log, db);
-		    parent.resultAppend(term);
+		    executeTransaction(term);
 		    term.traceScreen(log);
-		}
-		catch (CommitException e)
-		{
-			continue;
 		}
 		catch (Exception e)
 		{
@@ -235,8 +220,7 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		{
 		    term.generateDelivery(log, rnd, 0);
 		    term.traceScreen(log);
-		    term.execute(log, db);
-		    parent.resultAppend(term);
+		    executeTransaction(term);
 		    term.traceScreen(log);
 
 		    /*
@@ -246,15 +230,10 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		     */
 		    jTPCCTData  bg = term.getDeliveryBG();
 		    bg.traceScreen(log);
-		    bg.execute(log, db);
-		    parent.resultAppend(bg);
+		    executeTransaction(bg);
 		    bg.traceScreen(log);
 
 		    skippedDeliveries = bg.getSkippedDeliveries();
-		}
-		catch (CommitException e)
-		{
-			continue;
 		}
 		catch (Exception e)
 		{
@@ -274,13 +253,8 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		{
 		    term.generateNewOrder(log, rnd, 0);
 		    term.traceScreen(log);
-		    term.execute(log, db);
-		    parent.resultAppend(term);
+		    executeTransaction(term);
 		    term.traceScreen(log);
-		}
-		catch (CommitException e)
-		{
-			continue;
 		}
 		catch (Exception e)
 		{
@@ -289,8 +263,11 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 		    System.exit(4);
 		}
 		transactionTypeName = "New-Order";
-		newOrderCounter++;
-		newOrder = 1;
+		if (term.isCommittedNewOrder())
+		{
+		    newOrderCounter++;
+		    newOrder = 1;
+		}
 	    }
 
 	    long transactionEnd = System.currentTimeMillis();
@@ -321,6 +298,19 @@ public class jTPCCTerminal implements jTPCCConfig, Runnable
 	}
     }
 
+
+    // Record every execution attempt, including failures that terminate a terminal.
+    private void executeTransaction(jTPCCTData term) throws Exception
+    {
+	try
+	{
+	    term.execute(log, db);
+	}
+	finally
+	{
+	    parent.resultAppend(term);
+	}
+    }
 
     private void error(String type) {
       log.error(terminalName + ", TERMINAL=" + terminalName + "  TYPE=" + type + "  COUNT=" + transactionCount);
